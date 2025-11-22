@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- ENABLED PINCH TO ZOOM -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>HTML me! Studio</title>
-    
+
     <!-- UI Framework -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FONT AWESOME: CSS Version -->
+
+    <!-- FONT AWESOME -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;800&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 
     <!-- Capture Engine -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
@@ -35,62 +34,38 @@
             --hud-text: #E2E8F0;
         }
 
-        /* Theme Overrides */
         body.theme-aurora { --bg-deep: #0f0c29; --bg-panel: rgba(255, 255, 255, 0.1); --accent-primary: #ec4899; --accent-secondary: #6366f1; --border-subtle: rgba(255, 255, 255, 0.2); --glass-blur: blur(15px); }
         body.theme-pearl { --bg-deep: #fdfbf7; --bg-panel: rgba(255, 255, 255, 0.65); --accent-primary: #8b5cf6; --accent-secondary: #d4af37; --text-main: #1e293b; --text-muted: #64748b; --border-subtle: rgba(0, 0, 0, 0.06); --glass-blur: blur(25px); --hud-bg: rgba(255, 255, 255, 0.85); --hud-text: #334155; }
 
-        /* Base Layout */
         body { 
-            background-color: var(--bg-deep); 
-            color: var(--text-main); 
+            background-color: var(--bg-deep); color: var(--text-main); 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             min-height: 100vh; overflow-x: hidden; margin: 0; display: flex; 
-            transition: all 0.5s ease; 
-            -webkit-font-smoothing: antialiased; 
+            transition: all 0.5s ease; -webkit-font-smoothing: antialiased; 
+            touch-action: none; 
         }
-        
-        /* Backgrounds */
+
         .bg-layer { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.8s ease; z-index: 0; }
         .bg-obsidian { background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 40%), radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 30%); opacity: 0; }
         .bg-aurora { background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e); background-size: 400% 400%; animation: auroraBG 15s ease infinite; opacity: 0; }
         .bg-pearl { background: linear-gradient(135deg, #fdfbf7 0%, #f3e8ff 50%, #fffbeb 100%); opacity: 0; }
         .bg-pearl::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.15), transparent 50%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15), transparent 50%); }
-        
+
         body.theme-obsidian .bg-obsidian, body.theme-aurora .bg-aurora, body.theme-pearl .bg-pearl { opacity: 1; }
         @keyframes auroraBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         /* Sidebar & Stage */
-        .sidebar { 
-            width: 380px; 
-            background: var(--bg-panel); 
-            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
-            border-right: 1px solid var(--border-subtle); 
-            display: flex; flex-direction: column; padding: 1.5rem; 
-            z-index: 50; flex-shrink: 0; 
-            box-shadow: 10px 0 40px rgba(0,0,0,0.05); 
-            height: 100vh;
-            overflow-y: auto; transition: all 0.3s ease; 
-            -webkit-overflow-scrolling: touch;
-        }
-        .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 10px; }
-        
-        .stage-container { 
-            flex-grow: 1; position: relative; z-index: 10; 
-            background: rgba(0, 0, 0, 0.05); 
-            background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); 
-            background-size: 50px 50px; 
-            height: 100vh;
-            overflow: auto; display: flex; justify-content: center; padding: 80px; 
-            -webkit-overflow-scrolling: touch; 
-        }
-        
+        .sidebar { width: 380px; background: var(--bg-panel); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; padding: 1.5rem; z-index: 50; flex-shrink: 0; box-shadow: 10px 0 40px rgba(0,0,0,0.05); height: 100vh; overflow-y: auto; transition: all 0.3s ease; -webkit-overflow-scrolling: touch; }
+        .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px; }
+
+        .stage-container { flex-grow: 1; position: relative; z-index: 10; background: rgba(0, 0, 0, 0.05); background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 50px 50px; height: 100vh; overflow: auto; display: flex; justify-content: center; padding: 80px; -webkit-overflow-scrolling: touch; }
+
         #render-target { background-color: white; color: black; box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 50px 100px -20px rgba(0, 0, 0, 0.3); min-height: 400px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; position: relative; transform-style: flat; }
         #render-target * { transform-origin: top left; }
 
         /* UI Elements */
         .control-group { margin-bottom: 1.5rem; }
         .control-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
-        
         #html-input { width: 100%; min-height: 180px; background-color: rgba(0, 0, 0, 0.05); color: var(--accent-primary); font-family: 'JetBrains Mono', monospace; font-size: 11px; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.3s; line-height: 1.5; }
         body.theme-pearl #html-input { background-color: rgba(255,255,255,0.5); color: #475569; }
         #html-input:focus { border-color: var(--accent-primary); background-color: rgba(125,125,125,0.1); }
@@ -99,10 +74,8 @@
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--text-main); cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(125,125,125,0.5); border: 2px solid var(--accent-primary); }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); border-radius: 2px; }
 
-        /* HUD Toolbar */
         #hud-toolbar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); background: var(--hud-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); padding: 10px 20px; border-radius: 50px; display: flex; gap: 12px; align-items: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); z-index: 100; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #hud-toolbar.visible { transform: translateX(-50%) translateY(0); }
-        
         .hud-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(125,125,125,0.1); border: 1px solid var(--border-subtle); color: var(--hud-text); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; position: relative; }
         .hud-btn:hover { background: var(--accent-primary); transform: scale(1.1); color: white; border-color: transparent; }
         .hud-btn.danger:hover { color: white; background: #ef4444; }
@@ -110,12 +83,10 @@
         .btn-secondary { background: rgba(125, 125, 125, 0.1); color: var(--text-muted); transition: all 0.2s; }
         .btn-secondary:hover { background: rgba(125, 125, 125, 0.2); color: var(--text-main); }
 
-        /* Editing Visuals */
         .editing-active #render-target { outline: 4px solid var(--accent-primary); outline-offset: 2px; }
-        .selectable-hover { outline: 1px dashed var(--accent-primary); cursor: move; touch-action: none; /* Vital for drag vs scroll */ }
+        .selectable-hover { outline: 1px dashed var(--accent-primary); cursor: move; touch-action: none; }
         .selected-element { outline: 2px solid var(--accent-primary) !important; position: relative; z-index: 100; }
 
-        /* Toast & Loading */
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--accent-primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; opacity: 0; }
         #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
         #resolution-warning { display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; margin-top: 10px; color: #fca5a5; font-size: 10px; align-items: start; gap: 8px; animation: fadeIn 0.3s; }
@@ -124,92 +95,206 @@
         .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* === GLOBAL TRICK OVERLAY (Mobile Safe) === */
-        #global-boot-screen {
-            position: fixed; inset: 0; z-index: 9999999; 
-            background-color: #000; color: #10b981; font-family: 'Courier New', monospace;
-            display: none; flex-direction: column;
-            overflow: hidden;
-            /* Allow touch but hide cursor */
-            width: 100%; height: 100%;
-        }
-        
-        /* BSOD Style */
-        #bsod-screen {
-            background-color: #0078D7; color: white; 
-            font-family: 'Segoe UI', sans-serif;
-            padding: 10% 15%;
-            display: none;
-            flex-direction: column;
-            height: 100%; width: 100%;
-            position: absolute; top: 0; left: 0;
-        }
+        /* === GLOBAL OVERLAYS === */
+        .trick-overlay { position: fixed; inset: 0; z-index: 9999999; display: none; width: 100vw; height: 100vh; overflow: hidden; cursor: none; }
+
+        /* REBOOT TRICK */
+        #global-boot-screen { background-color: #000; color: #10b981; font-family: 'Courier New', monospace; }
+        #bsod-screen { background-color: #0078D7; color: white; font-family: 'Segoe UI', sans-serif; padding: 10% 15%; display: none; flex-direction: column; height: 100%; width: 100%; position: absolute; top: 0; left: 0; }
         .sad-face { font-size: 100px; margin-bottom: 30px; }
         .bsod-title { font-size: 24px; margin-bottom: 20px; font-weight: 300; }
-        .bsod-details { font-size: 14px; margin-top: 30px; font-weight: 400; }
-        
-        /* Bios Text */
         .bios-text { margin-bottom: 5px; text-shadow: 0 0 5px #10b981; padding-left: 20px; }
         .bios-header { padding: 20px; margin-bottom: 10px; }
-        
-        /* Glitch Animation */
-        .system-glitch { animation: violent-shake 0.2s infinite, color-shift 0.1s infinite; filter: contrast(1.5); }
-        @keyframes violent-shake { 
-            0% { transform: translate(0, 0) rotate(0deg); } 
-            25% { transform: translate(-5px, 5px) rotate(-1deg); } 
-            50% { transform: translate(5px, -5px) rotate(1deg); } 
-            75% { transform: translate(-5px, -5px) rotate(-1deg); } 
-            100% { transform: translate(0, 0) rotate(0deg); } 
-        }
-        @keyframes color-shift { 
-            0% { filter: hue-rotate(0deg) contrast(1.2); } 
-            50% { filter: hue-rotate(90deg) invert(0.2); } 
-            100% { filter: hue-rotate(0deg) contrast(1.2); } 
+
+        /* FAILURE TRICK */
+        #global-fail-screen { background-color: #000; color: #ef4444; font-family: 'Share Tech Mono', monospace; text-transform: uppercase; }
+        .red-strobe { animation: strobe 0.1s infinite; }
+        @keyframes strobe { 0% { background: #000; } 50% { background: #200; } 100% { background: #000; } }
+        .fail-text { font-size: 2rem; text-align: center; animation: shake 0.5s infinite; text-shadow: 2px 2px 0px #000; }
+
+        /* GAME UI */
+        #global-game-screen { background-color: #0f172a; font-family: 'JetBrains Mono', monospace; cursor: crosshair; touch-action: none; }
+
+        /* GAME TARGETS (Hexagons -> Circles) */
+        .game-target, .decoy-target, .bonus-target { 
+            position: absolute; width: 80px; height: 80px; 
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 10; border: 3px solid #fff;
+            animation: popIn 0.2s ease-out;
+            border-radius: 50%; /* Changed to Circle */
         }
 
-        /* Mobile */
-        @media (max-width: 1024px) { 
-            body { flex-direction: column; height: auto; overflow: auto; } 
-            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } 
-            .stage-container { height: 70vh; padding: 20px; align-items: flex-start; overflow-x: auto; } 
-            #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } 
+        /* TARGET (Starts Red) */
+        .game-target {
+            background: radial-gradient(circle, #ef4444 0%, #7f1d1d 100%);
+            box-shadow: 0 0 25px #ef4444;
+            /* Updated decayColor to 1.2s */
+            animation: popIn 0.2s, decayColor 1.2s forwards linear; 
         }
+        .game-target i { font-size: 32px; color: white; }
+
+        /* ROTTEN TARGET (Yellow - Dangerous) */
+        .game-target.rotten {
+            background: radial-gradient(circle, #f59e0b 0%, #92400e 100%);
+            box-shadow: 0 0 25px #f59e0b; border-color: #fcd34d;
+        }
+        .game-target.rotten i { color: #fffbeb; }
+
+        /* DECOY (Blue Bolt - Don't Touch) */
+        .decoy-target {
+            background: radial-gradient(circle, #3b82f6 0%, #1e3a8a 100%);
+            box-shadow: 0 0 30px #38bdf8; border-color: #e0f2fe;
+        }
+        .decoy-target i { font-size: 32px; color: #ffffff; filter: drop-shadow(0 0 5px #0ea5e9); }
+
+        /* BONUS (Diamond) */
+        .bonus-target {
+            background: radial-gradient(circle, #06b6d4 0%, #164e63 100%);
+            box-shadow: 0 0 30px #22d3ee; border-color: #cffafe;
+            animation: popIn 0.2s, pulseGem 0.5s infinite alternate;
+        }
+        .bonus-target i { font-size: 32px; color: #ffffff; text-shadow: 0 0 10px white; }
+
+        @keyframes decayColor { 
+            0% { filter: hue-rotate(0deg); } 
+            70% { filter: hue-rotate(0deg); } 
+            100% { filter: hue-rotate(45deg); } 
+        }
+        @keyframes pulseGem { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .game-target.hit, .bonus-target.hit { animation: popOut 0.1s forwards; filter: hue-rotate(120deg) !important; }
+        .frag-particle { position: absolute; width: 6px; height: 6px; background: #10b981; border-radius: 50%; pointer-events: none; animation: explode 0.5s forwards; }
+
+        @keyframes explode { 0% { transform: translate(0,0) scale(1); opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; } }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        @keyframes popOut { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes shakeTimer { 0% { transform: translate(0, 0); } 25% { transform: translate(-2px, 2px); color: #ef4444; } 50% { transform: translate(2px, -2px); } 75% { transform: translate(-2px, -2px); } 100% { transform: translate(0, 0); } }
+        .timer-critical { animation: shakeTimer 0.1s infinite; color: #ef4444; text-shadow: 0 0 15px #ef4444; font-weight: 900; }
+
+        .shake-screen { animation: violent-shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes violent-shake { 
+            10%, 90% { transform: translate3d(-5px, 0, 0); } 
+            20%, 80% { transform: translate3d(10px, 0, 0); } 
+            30%, 50%, 70% { transform: translate3d(-10px, 0, 0); } 
+            40%, 60% { transform: translate3d(10px, 0, 0); } 
+        }
+
+        /* Briefing Icons */
+        .briefing-icon { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white; }
+
+        @media (max-width: 1024px) { body { flex-direction: column; height: auto; overflow: auto; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } .stage-container { height: 70vh; padding: 20px; align-items: flex-start; overflow-x: auto; } #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } }
     </style>
 </head>
 <body class="theme-aurora">
-    
-    <!-- GLOBAL TRICK OVERLAY (Initially Hidden) -->
-    <div id="global-boot-screen">
-        <!-- BSOD Container -->
+
+    <!-- 1. REBOOT TRICK OVERLAY -->
+    <div id="global-boot-screen" class="trick-overlay">
         <div id="bsod-screen">
             <div class="sad-face">:(</div>
             <div class="bsod-title">Your device ran into a problem and needs to restart. We're just collecting some error info, and then we'll restart for you.</div>
             <div class="bsod-title"><span id="bsod-progress">0</span>% complete</div>
-            <div class="bsod-details">
-                <div class="flex items-center gap-4">
-                    <div class="bg-white w-24 h-24 flex items-center justify-center">
-                        <!-- Fake QR -->
-                        <div class="w-20 h-20 bg-black" style="mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgxdjFIMHptMiAwaDF2MUgyem00IDBoMXYxSDZ6bTIgMGgxdjFIOHptLTYgMmgydjJIMGV6IiBmaWxsPSIjMDAwIi8+PC9zdmc+'); -webkit-mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgxdjFIMHptMiAwaDF2MUgyem00IDBoMXYxSDZ6bTIgMGgxdjFIOHptLTYgMmgydjJIMGV6IiBmaWxsPSIjMDAwIi8+PC9zdmc+'); mask-size: cover;"></div>
-                    </div>
-                    <div>
-                        <p>For more information about this issue and possible fixes, visit https://www.windows.com/stopcode</p>
-                        <br>
-                        <p>If you call a support person, give them this info:</p>
-                        <p>Stop code: CRITICAL_QUANTUM_DECOHERENCE</p>
-                    </div>
+            <div class="flex items-center gap-4 mt-8">
+                <div class="bg-white w-24 h-24 flex items-center justify-center p-1">
+                    <div class="w-full h-full bg-black" style="mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgxdjFIMHptMiAwaDF2MUgyem00IDBoMXYxSDZ6bTIgMGgxdjFIOHptLTYgMmgydjJIMGV6IiBmaWxsPSIjMDAwIi8+PC9zdmc+'); -webkit-mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgxdjFIMHptMiAwaDF2MUgyem00IDBoMXYxSDZ6bTIgMGgxdjFIOHptLTYgMmgydjJIMGV6IiBmaWxsPSIjMDAwIi8+PC9zdmc+'); mask-size: cover;"></div>
+                </div>
+                <div class="text-sm">
+                    <p>Stop code: CRITICAL_QUANTUM_DECOHERENCE</p>
                 </div>
             </div>
         </div>
-        
-        <!-- BIOS Container -->
         <div id="bios-screen" style="display:none; height:100%; padding:20px;">
             <div class="bios-header">
-                <div style="color:#fff;">NEXUS QUANTUM BIOS v12.5.0</div>
+                <div style="color:#fff;">NEXUS QUANTUM BIOS v15.0.0</div>
                 <div style="color:#aaa;">Copyright (C) 2025 Nexus Corp.</div>
-                <div style="color:#aaa;">BIOS Date: 11/23/25 03:15:00 Ver: 12.5.0</div>
             </div>
             <div id="boot-log" class="space-y-1 text-emerald-500"></div>
             <div class="mt-2 text-white"><span class="terminal-cursor"></span></div>
+        </div>
+    </div>
+
+    <!-- 2. FAILURE TRICK OVERLAY -->
+    <div id="global-fail-screen" class="trick-overlay">
+        <div class="absolute inset-0 red-strobe"></div>
+        <div class="relative z-10 flex flex-col items-center justify-center h-full gap-8 p-4">
+            <i class="fas fa-radiation text-9xl text-red-500 animate-pulse"></i>
+            <div class="fail-text text-red-500 font-black glitch-text" style="font-size:3rem;">
+                SYSTEM FAILURE<br>BREACH DETECTED
+            </div>
+            <div class="w-full max-w-md bg-red-900/30 border border-red-500 h-6 rounded overflow-hidden">
+                <div id="restore-bar" class="h-full bg-red-500 w-0 transition-all duration-[5000ms] ease-linear"></div>
+            </div>
+            <div class="text-red-400 text-sm font-mono animate-pulse" id="fail-log">INITIATING EMERGENCY PURGE...</div>
+        </div>
+        <div class="absolute inset-0 pointer-events-none opacity-30" style="background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PHRleHQgeD0iMCIgeT0iMTUiIGZpbGw9InJlZCIgZm9udC1mYW1pbHQ9Im1vbm9zcGFjZSI+MHg0RjwvdGV4dD48L3N2Zz4=')"></div>
+    </div>
+
+    <!-- 3. GAME OVERLAY -->
+    <div id="global-game-screen" class="trick-overlay">
+        <div class="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.1)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none"></div>
+
+        <div class="panic-overlay" id="panic-flash"></div>
+
+        <!-- BRIEFING OVERLAY -->
+        <div id="game-briefing" class="absolute inset-0 flex flex-col items-center justify-center z-50 bg-black/90 backdrop-blur-lg">
+            <h1 class="text-4xl font-bold text-white mb-8 tracking-tighter">PROTOCOL: BREACH</h1>
+            <div class="flex gap-8 mb-10 flex-wrap justify-center">
+                <div class="flex flex-col items-center">
+                    <div class="briefing-icon bg-red-500 shadow-[0_0_20px_red] mb-4"><i class="fas fa-bug text-3xl text-white"></i></div>
+                    <span class="text-red-400 font-bold tracking-widest">DESTROY</span>
+                    <span class="text-xs text-slate-400 mt-1">(Before Yellow)</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="briefing-icon bg-blue-600 shadow-[0_0_20px_cyan] mb-4"><i class="fas fa-bolt text-3xl text-white"></i></div>
+                    <span class="text-cyan-400 font-bold tracking-widest">AVOID</span>
+                    <span class="text-xs text-slate-400 mt-1">(Decoy)</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <div class="briefing-icon bg-cyan-500 shadow-[0_0_20px_cyan] mb-4 animate-pulse"><i class="fas fa-gem text-3xl text-white"></i></div>
+                    <span class="text-cyan-300 font-bold tracking-widest">BONUS</span>
+                </div>
+            </div>
+            <div class="text-8xl font-black text-white animate-pulse" id="briefing-countdown">3</div>
+        </div>
+
+        <!-- HUD -->
+        <div class="absolute top-0 left-0 p-6 w-full flex justify-between items-start z-40 pointer-events-none">
+            <div class="pointer-events-auto">
+                <div class="text-4xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" id="game-score">000</div>
+                <div class="text-sm text-cyan-400 uppercase tracking-widest">Target: <span class="text-white">1500</span></div>
+                <!-- Breach Bar -->
+                <div class="mt-2 w-48 h-3 bg-slate-800 border border-red-900 rounded overflow-hidden relative">
+                    <div id="breach-bar" class="h-full bg-red-600 w-0 transition-all duration-300"></div>
+                </div>
+                <div class="text-[10px] text-red-500 uppercase mt-1">System Integrity</div>
+            </div>
+            <div class="text-center">
+                <div class="text-6xl font-black text-white drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]" id="game-timer">15</div>
+                <div class="text-sm text-red-400 uppercase tracking-widest">Seconds</div>
+            </div>
+            <div class="pointer-events-auto">
+                <button onclick="window.demoApp.quitGame()" class="px-4 py-2 bg-red-600/20 border border-red-500 text-red-500 rounded hover:bg-red-600 hover:text-white">ABORT</button>
+            </div>
+        </div>
+
+        <!-- Game Canvas -->
+        <div id="game-area" class="absolute inset-0 overflow-hidden touch-none z-30"></div>
+
+        <!-- Result Screen -->
+        <div id="game-result-screen" class="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-50 hidden">
+            <h1 id="result-title" class="text-5xl font-black mb-2 animate-bounce"></h1>
+            <p class="text-xl text-white mb-6">CORE STATUS: <span id="core-status"></span></p>
+
+            <!-- Leaderboard -->
+            <div class="bg-slate-800/80 border border-slate-600 p-6 rounded-xl w-80 mb-8 backdrop-blur-md shadow-2xl">
+                <h3 class="text-cyan-400 font-bold text-center mb-4 tracking-widest border-b border-slate-600 pb-2">SECURITY LOG</h3>
+                <div id="leaderboard-list" class="space-y-2 font-mono text-sm"></div>
+            </div>
+
+            <div class="flex gap-4">
+                <button id="btn-retry" onclick="window.demoApp.handleRetry()" class="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.6)]">RETRY</button>
+                <button id="btn-fate" onclick="window.demoApp.handleFate()" class="px-6 py-3 bg-red-700 hover:bg-red-600 text-white font-bold rounded-lg border border-red-500 hidden">ACCEPT FATE</button>
+                <button id="btn-exit" onclick="window.demoApp.quitGame()" class="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-lg border border-slate-500">EXIT</button>
+            </div>
         </div>
     </div>
 
@@ -266,7 +351,7 @@
         <div class="control-group">
             <div class="control-label"><span>Scale (1K - 12K)</span><span id="quality-val" style="color:var(--accent-primary)" class="font-bold text-xs">2K</span></div>
             <input type="range" id="quality-slider" min="1" max="12" step="1" value="2">
-            
+
             <div id="resolution-warning" class="flex">
                 <i class="fas fa-exclamation-triangle mt-0.5"></i>
                 <div><strong>High Memory Usage</strong><br>10K+ resolution may cause browser freeze.</div>
@@ -282,12 +367,14 @@
         </div>
 
         <div class="sidebar-footer">
-            <button onclick="cycleTheme()" class="btn-secondary flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs transition">
-                <i class="fas fa-palette"></i> <span id="theme-label">Aurora</span>
-            </button>
-            <button onclick="openNewTabPreview()" class="btn-secondary flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs transition">
-                <i class="fas fa-external-link-alt"></i> Preview
-            </button>
+            <div class="flex gap-2 mt-2">
+                <button onclick="cycleTheme()" class="btn-secondary flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs transition">
+                    <i class="fas fa-palette"></i> <span id="theme-label">Aurora</span>
+                </button>
+                <button onclick="openNewTabPreview()" class="btn-secondary flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs transition">
+                    <i class="fas fa-external-link-alt"></i> Preview
+                </button>
+            </div>
         </div>
     </div>
 
@@ -341,14 +428,11 @@
 </style>
 
 <div class="relative flex items-center justify-center h-[700px] bg-[#020617] font-mono p-8 overflow-hidden text-cyan-100" id="main-container">
-    <!-- Background Matrix -->
     <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle, #1e293b 1px, transparent 1px); background-size: 30px 30px;"></div>
     <div class="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-[#020617]"></div>
 
-    <!-- Main Dashboard Frame -->
     <div id="dashboard-frame" class="relative z-10 w-[1100px] h-[620px] bg-[#0f172a]/90 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/10">
-        
-        <!-- Header -->
+
         <div class="h-16 border-b border-slate-800 bg-[#0B1121] flex items-center justify-between px-6">
             <div class="flex items-center gap-4">
                 <div class="w-8 h-8 bg-cyan-600 rounded flex items-center justify-center text-white shadow-lg shadow-cyan-500/50"><i class="fas fa-cube"></i></div>
@@ -358,11 +442,16 @@
                 </div>
             </div>
             <div class="flex gap-4 text-[10px] items-center">
+                <!-- GAME BUTTON (Curiosity Trigger) -->
+                <div id="btn-launch-game-internal" class="px-3 py-1 rounded bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center gap-2 cursor-pointer hover:bg-cyan-500/20 hover:text-white transition group animate-[pulse_3s_infinite]" onclick="window.demoApp.launchGame()">
+                    <i class="fas fa-exclamation-triangle text-lg group-hover:animate-bounce text-red-500"></i> <span class="hidden sm:inline text-red-400 font-bold tracking-widest">PROTOCOL: BREACH</span>
+                </div>
+
                 <div class="px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> QUANTUM STABLE
                 </div>
                 <!-- REBOOT BUTTON -->
-                <button onclick="window.demoApp.triggerReboot()" class="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition shadow-[0_0_10px_rgba(239,68,68,0.4)]">
+                <button onclick="window.demoApp.triggerReboot()" class="power-icon-pulse w-8 h-8 rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition shadow-[0_0_10px_rgba(239,68,68,0.4)]">
                     <i class="fas fa-power-off"></i>
                 </button>
             </div>
@@ -370,20 +459,19 @@
 
         <!-- Grid Content -->
         <div class="flex-1 p-6 grid grid-cols-4 grid-rows-3 gap-4 overflow-hidden">
-            
+
             <!-- 1. Quantum Core (2x2) -->
             <div class="glass-panel col-span-2 row-span-2 rounded-xl relative flex items-center justify-center overflow-hidden group">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1),transparent)]"></div>
-                <!-- Rings -->
                 <div class="w-64 h-64 border border-slate-700 rounded-full absolute animate-[spinGeo_20s_linear_infinite]"></div>
                 <div class="w-52 h-52 border border-cyan-500/30 border-dashed rounded-full absolute animate-[spinGeo_15s_linear_infinite_reverse]"></div>
                 <div class="w-40 h-40 border-2 border-cyan-400 rounded-full absolute animate-[spinGeo_8s_linear_infinite] border-t-transparent border-b-transparent"></div>
-                
+
                 <div class="z-10 text-center bg-black/50 backdrop-blur-sm p-4 rounded-full border border-white/10">
                     <div class="text-4xl font-bold text-white tracking-tighter" id="core-temp">48°C</div>
                     <div class="text-[9px] text-cyan-400 tracking-widest uppercase">Core Temp</div>
                 </div>
-                
+
                 <div class="absolute bottom-4 right-4 text-right">
                     <div class="text-[10px] text-slate-500">Q-BITS</div>
                     <div class="text-xl font-bold text-white">1,024</div>
@@ -517,13 +605,19 @@
         const editSizeSlider = document.getElementById('edit-size-slider');
         const btnView = document.getElementById('btn-view');
         const btnEdit = document.getElementById('btn-edit');
-        
+
         let isEditMode = false;
         let selectedElement = null;
         let clipboardHTML = null; 
         let isDemoActive = true;
         let pasteCounter = 1;
         let memInterval;
+        let gameInterval, gameTimerInterval;
+        let gameScore = 0;
+        let gameTime = 15;
+        let decoyHits = 0;
+        let decoyChance = 0.4;
+        const MIN_WIN_SCORE = 1500;
 
         const themes = ['theme-aurora', 'theme-pearl', 'theme-obsidian'];
         const themeNames = ['Aurora', 'Pearl', 'Obsidian'];
@@ -531,12 +625,14 @@
 
         const fontFamilies = ["'Plus Jakarta Sans', sans-serif", "'JetBrains Mono', monospace", "'Playfair Display', serif", "'Caveat', cursive", "'Inter', sans-serif"];
         let fontIndex = 0;
-        
+
         const historyStack = [];
         let historyPointer = -1;
 
         // --- GLOBAL DEMO APP CONTROLLER ---
         window.demoApp = {
+            retryCount: 0, // Track number of retries
+
             initSys: function() {
                 const log = renderTarget.querySelector('#event-log');
                 if(log) {
@@ -544,48 +640,31 @@
                     log.scrollTop = log.scrollHeight;
                 }
             },
-            triggerReboot: function() {
-                const modal = renderTarget.querySelector('#reboot-confirm');
-                if(modal) modal.classList.remove('hidden');
-            },
-            cancelReboot: function() {
+            triggerReboot: function(hardReset = false) {
                 const modal = renderTarget.querySelector('#reboot-confirm');
                 if(modal) modal.classList.add('hidden');
-            },
-            confirmReboot: function() {
-                const modal = renderTarget.querySelector('#reboot-confirm');
-                if(modal) modal.classList.add('hidden');
-                
-                // TRIGGER THE TRICK SEQUENCE
+
                 const bootContainer = document.getElementById('global-boot-screen');
                 const bsodScreen = document.getElementById('bsod-screen');
                 const biosScreen = document.getElementById('bios-screen');
                 const bootLog = document.getElementById('boot-log');
                 const mainBody = document.body;
 
-                // Attempt Fullscreen (Desktop) or Overlay (Mobile Fallback)
                 const requestFS = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
                 if (requestFS) {
-                    requestFS.call(document.documentElement).catch(err => {
-                        console.log("Fullscreen denied, using overlay mode");
-                    });
+                    requestFS.call(document.documentElement).catch(err => { console.log("Fullscreen denied", err); });
                 }
 
-                // 1. Glitch Effect on body
+                // 1. GLITCH & INVERT
                 mainBody.style.filter = "invert(1) hue-rotate(180deg)";
                 mainBody.style.transform = "scale(1.02)";
-                
+
                 setTimeout(() => {
-                    mainBody.style.filter = "none";
-                    mainBody.style.transform = "none";
-                    
-                    // 2. Show Global Overlay
+                    mainBody.style.filter = "none"; mainBody.style.transform = "none";
                     bootContainer.style.display = 'flex';
-                    
-                    // 3. BSOD
                     bsodScreen.style.display = 'flex';
-                    
-                    // Count up
+                    bootContainer.style.zIndex = "999999999"; // Ensure top level
+
                     let percent = 0;
                     const progress = document.getElementById('bsod-progress');
                     const interval = setInterval(() => {
@@ -595,62 +674,400 @@
                         if(percent === 100) clearInterval(interval);
                     }, 300);
 
-                    // 4. Blackout after 5s
                     setTimeout(() => {
                         bsodScreen.style.display = 'none';
-                        
-                        // 5. BIOS after 2s black
                         setTimeout(() => {
                             biosScreen.style.display = 'block';
-                            
-                            const logs = [
-                                "Initializing Nexus Kernel...",
-                                "Checking NVRAM... 64TB OK",
-                                "Mounting Volume /dev/quantum0... DONE",
-                                "Loading Graphics Subsystem... OK",
-                                "System Check: PASSED",
-                                "Booting Nexus OS..."
-                            ];
-                            
+                            const logs = ["Initializing Nexus Kernel...", "Checking NVRAM... 64TB OK", "Mounting Volume /dev/quantum0... DONE", "Loading Graphics Subsystem... OK", "System Check: PASSED", "Booting Nexus OS..."];
                             bootLog.innerHTML = "";
                             let logDelay = 0;
-                            logs.forEach(line => {
-                                setTimeout(() => {
-                                    bootLog.innerHTML += `<div>${line}</div>`;
-                                }, logDelay);
-                                logDelay += Math.random() * 600 + 200;
-                            });
-                            
-                            // 6. Restore
+                            logs.forEach(line => { setTimeout(() => { bootLog.innerHTML += `<div>${line}</div>`; }, logDelay); logDelay += Math.random() * 600 + 200; });
                             setTimeout(() => {
-                                bootContainer.style.display = 'none';
-                                biosScreen.style.display = 'none';
-                                if (document.exitFullscreen) {
-                                    document.exitFullscreen();
-                                } else if (document.webkitExitFullscreen) {
-                                    document.webkitExitFullscreen();
+                                bootContainer.style.display = 'none'; biosScreen.style.display = 'none';
+
+                                if (hardReset) {
+                                    // HARD RESET LOGIC
+                                    this.quitGame(); // Close game UI
+                                    input.value = DEMO_HTML; // Reset Code
+                                    renderContent(); // Re-render
+                                    this.retryCount = 0; // Reset Flag
+
+                                    // Reset Theme
+                                    themeIndex = 0;
+                                    document.body.className = themes[0];
+                                    updateThemeUI();
+
+                                    // Reset View Mode
+                                    setMode('view');
                                 }
+
+                                if (document.exitFullscreen) document.exitFullscreen();
+                                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
                             }, logDelay + 1500);
-                            
                         }, 2000);
-                        
                     }, 5000);
-                    
-                }, 500); // Glitch duration
+                }, 500);
+            },
+            cancelReboot: function() {
+                const modal = renderTarget.querySelector('#reboot-confirm');
+                if(modal) modal.classList.add('hidden');
+            },
+            confirmReboot: function() {
+                this.triggerReboot(false);
+            },
+            // GAME LOGIC
+            launchGame: function(isRetry = false) {
+                if (isRetry) {
+                    this.retryCount++;
+                } else {
+                    this.retryCount = 0;
+                }
+
+                const gameScreen = document.getElementById('global-game-screen');
+                const gameArea = document.getElementById('game-area');
+                const scoreEl = document.getElementById('game-score');
+                const timerEl = document.getElementById('game-timer');
+                const failScreen = document.getElementById('global-fail-screen');
+                const resultScreen = document.getElementById('game-result-screen');
+                const briefingScreen = document.getElementById('game-briefing');
+                const briefingCountdown = document.getElementById('briefing-countdown');
+
+                const requestFS = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+                if (requestFS) requestFS.call(document.documentElement).catch(() => {});
+
+                gameScreen.style.display = 'block';
+                failScreen.style.display = 'none';
+                resultScreen.classList.add('hidden');
+                gameArea.innerHTML = '';
+
+                gameScore = 0;
+                gameTime = 15;
+                decoyHits = 0;
+                decoyChance = 0.4; 
+                scoreEl.innerText = "000";
+                timerEl.innerText = "15";
+                timerEl.className = "text-6xl font-black text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]";
+                document.getElementById('breach-bar').style.width = '0%';
+
+                // SHOW BRIEFING
+                briefingScreen.style.display = 'flex';
+                let bCount = 3;
+                briefingCountdown.innerText = bCount;
+                const bInt = setInterval(() => {
+                    bCount--;
+                    if(bCount > 0) briefingCountdown.innerText = bCount;
+                    else if (bCount === 0) briefingCountdown.innerText = "ENGAGE";
+                    else {
+                        clearInterval(bInt);
+                        briefingScreen.style.display = 'none';
+                        this.startGameLoop();
+                    }
+                }, 1000);
+            },
+            handleRetry: function() {
+                // If we have already retried once (meaning we just finished Game 2), 
+                // the next retry (Game 3) triggers revenge.
+                if (this.retryCount >= 1) {
+                    this.triggerWasuponRevenge();
+                } else {
+                    this.launchGame(true);
+                }
+            },
+            handleFate: function() {
+                // If we just finished Game 2, Fate also triggers revenge
+                if (this.retryCount >= 1) {
+                    this.triggerWasuponRevenge();
+                } else {
+                    this.triggerFailure();
+                }
+            },
+            startGameLoop: function() {
+                const gameArea = document.getElementById('game-area');
+                const scoreEl = document.getElementById('game-score');
+                const timerEl = document.getElementById('game-timer');
+                const body = document.body;
+
+                // Spawner
+                gameInterval = setInterval(() => {
+                    if(gameTime <= 0) return;
+
+                    const rand = Math.random();
+
+                    const target = document.createElement('div');
+
+                    if(rand > 0.9) {
+                        // BONUS (10% Chance)
+                        target.className = 'bonus-target';
+                        target.innerHTML = '<i class="fas fa-gem"></i>';
+
+                    } else if (rand > 0.5) { // 40% Decoy
+                        target.className = 'decoy-target';
+                        target.innerHTML = '<i class="fas fa-bolt"></i>';
+
+                    } else { // 50% Normal Target
+                        target.className = 'game-target';
+                        target.innerHTML = '<i class="fas fa-bug"></i>'; 
+                        target.setAttribute('data-created', Date.now());
+                        // Rotten Logic (Easier - 1.5s)
+                        setTimeout(() => {
+                            if(target.parentNode && !target.classList.contains('hit')) {
+                                target.classList.add('rotten');
+                                target.innerHTML = '<i class="fas fa-biohazard"></i>'; 
+                            }
+                        }, 1200); 
+                    }
+
+                    const x = Math.random() * (window.innerWidth - 90);
+                    const y = Math.random() * (window.innerHeight - 160) + 90;
+                    target.style.left = x + 'px'; target.style.top = y + 'px';
+
+                    target.onmousedown = target.ontouchstart = (e) => {
+                        e.preventDefault(); e.stopPropagation();
+                        const now = Date.now();
+
+                        if(target.classList.contains('decoy-target')) {
+                            decoyHits++;
+                            document.getElementById('breach-bar').style.width = (decoyHits * 33.3) + '%';
+                            body.classList.add('shake-screen');
+                            setTimeout(() => body.classList.remove('shake-screen'), 300);
+                            if(decoyHits >= 3) this.failGame();
+                        } 
+                        else if(target.classList.contains('bonus-target')) {
+                            gameScore += 300;
+                            scoreEl.innerText = gameScore.toString().padStart(3, '0');
+                            target.classList.add('hit');
+                        }
+                        else {
+                            const created = parseInt(target.getAttribute('data-created'));
+                            if (now - created > 1500) { // Rotten
+                                gameScore -= 50;
+                                body.classList.add('shake-screen');
+                                setTimeout(() => body.classList.remove('shake-screen'), 300);
+                                // Penalty: More decoys
+                                decoyChance = Math.min(0.8, decoyChance + 0.1);
+                            } else {
+                                gameScore += 100;
+                                const p = document.createElement('div'); p.className = 'frag-particle';
+                                p.style.left = (x+40)+'px'; p.style.top = (y+40)+'px';
+                                p.style.setProperty('--tx', (Math.random()*100-50)+'px'); p.style.setProperty('--ty', (Math.random()*100-50)+'px');
+                                gameArea.appendChild(p); setTimeout(() => p.remove(), 500);
+                            }
+                            scoreEl.innerText = gameScore.toString().padStart(3, '0');
+                            target.classList.add('hit');
+                        }
+                        setTimeout(() => target.remove(), 200);
+                    };
+
+                    gameArea.appendChild(target);
+                    setTimeout(() => { if(target.parentNode) target.remove(); }, 1400); // Easier - longer persist
+                }, 300);
+
+                // Timer & Panic
+                gameTimerInterval = setInterval(() => {
+                    gameTime--;
+                    timerEl.innerText = gameTime;
+
+                    if(gameTime < 6) timerEl.classList.add('timer-critical');
+
+                    if(gameTime < 8 && Math.random() > 0.6) {
+                         body.classList.add('red-shift');
+                         setTimeout(() => body.classList.remove('red-shift'), 100);
+                    }
+                    // Fake System Fail Flash
+                    if(gameTime < 5 && Math.random() > 0.7) {
+                        const flash = document.createElement('div');
+                        flash.className = 'absolute inset-0 flex items-center justify-center pointer-events-none z-50 text-6xl font-black text-red-500 opacity-80 animate-pulse';
+                        flash.innerText = Math.random() > 0.5 ? "SYSTEM FAILURE" : "CRITICAL ERROR";
+                        gameArea.appendChild(flash);
+                        setTimeout(() => flash.remove(), 200);
+                    }
+
+                    if(gameTime <= 0) {
+                        if(gameScore >= MIN_WIN_SCORE) this.winGame();
+                        else this.failGame();
+                    }
+                }, 1000);
+            },
+
+            showResult: function(isWin) {
+                clearInterval(gameInterval);
+                clearInterval(gameTimerInterval);
+
+                const screen = document.getElementById('game-result-screen');
+                const title = document.getElementById('result-title');
+                const status = document.getElementById('core-status');
+                const btnRetry = document.getElementById('btn-retry');
+                const btnFate = document.getElementById('btn-fate');
+                const btnExit = document.getElementById('btn-exit');
+
+                screen.classList.remove('hidden');
+                generateLeaderboard(gameScore);
+
+                // Update Buttons to use new handlers
+                btnRetry.onclick = () => this.handleRetry();
+                btnFate.onclick = () => this.handleFate();
+
+                if(isWin) {
+                    title.innerText = "BREACH SEALED";
+                    title.className = "text-5xl font-black text-emerald-400 mb-2 animate-bounce";
+                    status.innerText = "STABLE";
+                    status.className = "text-emerald-400 font-bold";
+                    btnRetry.classList.remove('hidden');
+                    btnFate.classList.add('hidden');
+                    btnExit.classList.remove('hidden');
+                } else {
+                    title.innerText = "SYSTEM COMPROMISED";
+                    title.className = "text-5xl font-black text-red-500 mb-2 panic-shake";
+                    status.innerText = "CRITICAL";
+                    status.className = "text-red-500 font-bold animate-pulse";
+                    btnRetry.classList.remove('hidden');
+                    btnFate.classList.remove('hidden');
+                    btnExit.classList.add('hidden');
+                }
+            },
+
+            winGame: function() { this.showResult(true); },
+            failGame: function() { 
+                this.showResult(false); 
+            },
+
+            triggerWasuponRevenge: function() {
+                // 1. Stop Game
+                clearInterval(gameInterval);
+                clearInterval(gameTimerInterval);
+                document.getElementById('global-game-screen').style.display = 'none';
+
+                // 2. Show Menacing Overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = "position:fixed;inset:0;background:black;z-index:999999999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;animation:fadeIn 0.5s;";
+                overlay.innerHTML = `
+                    <div style="color:#ef4444;font-size:1.5rem;margin-bottom:20px;letter-spacing:4px;" class="animate-pulse">ACCESS DENIED</div>
+                    <div style="color:white;font-size:2.5rem;font-weight:900;text-align:center;margin-bottom:10px;text-shadow:0 0 20px red;">"Did you really think you could defeat me?"</div>
+                    <div style="color:#94a3b8;font-size:1.2rem;margin-bottom:30px;font-style:italic;">"Know your place, user."</div>
+                    <div style="color:#64748b;font-size:1rem;">- Dr. Wasupon</div>
+                `;
+                document.body.appendChild(overlay);
+
+                // 3. Wait then Trigger Hard Reboot
+                setTimeout(() => {
+                    overlay.remove();
+                    this.triggerReboot(true); // true = Hard Reset
+                }, 4000);
+            },
+
+            triggerFailure: function() {
+                // 1. Stop Game Logic
+                clearInterval(gameInterval);
+                clearInterval(gameTimerInterval);
+
+                // 2. Hide Game Screen immediately so Fail Screen is visible
+                document.getElementById('global-game-screen').style.display = 'none';
+
+                // 3. Show Fail Screen
+                const failScreen = document.getElementById('global-fail-screen');
+                failScreen.style.display = 'flex';
+                failScreen.style.zIndex = "99999999"; // Ensure it is on top
+
+                const bar = document.getElementById('restore-bar');
+                const log = document.getElementById('fail-log');
+                bar.style.width = "0%";
+
+                const logs = ["INITIATING EMERGENCY PURGE...", "ISOLATING KERNEL...", "FLUSHING MEMORY BANKS...", "RESTORING SAFE STATE..."];
+                let i = 0;
+                const logInt = setInterval(() => { if(i < logs.length) { log.innerText = logs[i]; i++; } }, 1200);
+                setTimeout(() => { bar.style.width = "100%"; }, 100);
+
+                setTimeout(() => {
+                    clearInterval(logInt);
+                    failScreen.style.display = 'none';
+
+                    // 4. Transition to Boot Screen
+                    const biosScreen = document.getElementById('bios-screen');
+                    const bootContainer = document.getElementById('global-boot-screen');
+                    bootContainer.style.display = 'flex';
+                    bootContainer.style.zIndex = "99999999";
+                    biosScreen.style.display = 'block';
+
+                    const bootLog = document.getElementById('boot-log');
+                    const lines = ["SAFE MODE RECOVERY...", "Verifying Checksum... OK", "Restoring Graphic Config...", "System Stable."];
+                    bootLog.innerHTML = "";
+                    let d = 0;
+                    lines.forEach(l => { setTimeout(() => bootLog.innerHTML += `<div>${l}</div>`, d); d += 500; });
+                    setTimeout(() => {
+                         bootContainer.style.display = 'none';
+                         biosScreen.style.display = 'none';
+                         this.quitGame();
+                    }, d + 1000);
+                }, 5000);
+            },
+
+            quitGame: function() {
+                clearInterval(gameInterval);
+                clearInterval(gameTimerInterval);
+                document.getElementById('global-game-screen').style.display = 'none';
+                document.body.classList.remove('red-shift');
+                document.body.classList.remove('shake-screen');
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             }
         };
+
+        function generateLeaderboard(score) {
+            const names = ["Park", "Alex", "Sarah", "Mike", "Emily", "David", "Neo_Ops", "V0id_Walker"];
+            const list = document.getElementById('leaderboard-list');
+            list.innerHTML = '';
+
+            const playerRank = Math.random() > 0.5 ? 2 : 3;
+            let entries = [];
+
+            // Rank 1: Dr. Wasupon (Always)
+            entries.push({ rank: 1, name: "Dr. Wasupon", score: (Math.floor((score + 500)/100)*100), isPlayer: false });
+
+            // Calculate Player Score rounded to 100
+            const safeScore = Math.floor(score/100)*100;
+
+            // Rank 2
+            if (playerRank === 2) {
+                entries.push({ rank: 2, name: "YOU", score: safeScore, isPlayer: true });
+            } else {
+                let r2Name = names[Math.floor(Math.random()*names.length)];
+                entries.push({ rank: 2, name: r2Name, score: safeScore + 200, isPlayer: false });
+            }
+
+            // Rank 3
+            if (playerRank === 3) {
+                entries.push({ rank: 3, name: "YOU", score: safeScore, isPlayer: true });
+            } else {
+                let r3Name = names[Math.floor(Math.random()*names.length)];
+                entries.push({ rank: 3, name: r3Name, score: Math.max(0, safeScore - 100), isPlayer: false });
+            }
+
+            // Rank 4 & 5
+            entries.push({ rank: 4, name: names[Math.floor(Math.random()*names.length)], score: Math.max(0, safeScore - 400), isPlayer: false });
+            entries.push({ rank: 5, name: names[Math.floor(Math.random()*names.length)], score: Math.max(0, safeScore - 800), isPlayer: false });
+
+            entries.forEach(e => {
+                const row = document.createElement('div');
+                row.className = `flex justify-between items-center p-2 rounded ${e.isPlayer ? 'bg-cyan-900/50 border border-cyan-500/50 animate-pulse' : 'border-b border-slate-700/30'}`;
+                let extra = "";
+                if(e.isPlayer && score < MIN_WIN_SCORE) extra = " <span class='text-[10px] text-red-500 ml-1'>[KIA]</span>";
+                if(e.rank === 1) extra = " <span class='text-[10px] text-yellow-500 ml-1'>[SURVIVOR]</span>";
+
+                row.innerHTML = `<div class="flex items-center gap-3"><span class="${e.rank === 1 ? 'text-yellow-400 font-bold text-lg' : 'text-slate-500'}">#${e.rank}</span><span class="${e.isPlayer ? 'text-cyan-300 font-bold' : 'text-slate-300'}">${e.name}${extra}</span>${e.rank === 1 ? '<i class="fas fa-crown text-yellow-500 text-xs ml-1"></i>' : ''}</div><span class="text-emerald-400 font-mono">${e.score}</span>`;
+                list.appendChild(row);
+            });
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             input.value = DEMO_HTML;
             renderContent();
             updateThemeUI();
             updateModeUI();
-            
-            // Setup Interactive Demo Features
+
             setTimeout(() => {
                 const sysId = renderTarget.querySelector('#sys-id');
                 if(sysId) sysId.innerText = `SYS_ID: ${navigator.platform.toUpperCase()} // ${navigator.userAgent.split(' ')[0]}`;
-                
+
                 const grid = renderTarget.querySelector('#mem-grid');
                 if(grid) {
                     let html = '';
@@ -659,18 +1076,15 @@
                         html += `<div class="w-full h-full rounded-[1px] ${active} transition-colors duration-300"></div>`;
                     }
                     grid.innerHTML = html;
-                    
+
                     if(memInterval) clearInterval(memInterval);
                     memInterval = setInterval(() => {
                         const cells = grid.children;
                         const idx = Math.floor(Math.random() * cells.length);
                         const cell = cells[idx];
                         if(cell) {
-                            if(cell.classList.contains('bg-emerald-500/50')) {
-                                cell.classList.remove('bg-emerald-500/50'); cell.classList.add('bg-slate-700/30');
-                            } else {
-                                cell.classList.remove('bg-slate-700/30'); cell.classList.add('bg-emerald-500/50');
-                            }
+                            if(cell.classList.contains('bg-emerald-500/50')) { cell.classList.remove('bg-emerald-500/50'); cell.classList.add('bg-slate-700/30'); } 
+                            else { cell.classList.remove('bg-slate-700/30'); cell.classList.add('bg-emerald-500/50'); }
                         }
                     }, 100);
                 }
@@ -715,7 +1129,9 @@
             let styles = "";
             doc.querySelectorAll('style').forEach(s => styles += s.outerHTML);
             renderTarget.innerHTML = styles + doc.body.innerHTML;
-            
+
+            if(window.FontAwesome) window.FontAwesome.dom.i2svg({ node: renderTarget });
+
             if (historyStack.length === 0) saveState();
             if (isEditMode) enableEditListeners();
         }
@@ -819,7 +1235,7 @@
             const loader = document.getElementById('loading-overlay'); 
             document.getElementById('render-format-text').innerText = format.toUpperCase();
             loader.style.display='flex';
-            
+
             // 1. Explicitly Construct Style Tag with FA Font
             const fontStyle = document.createElement('style');
             if (fontAwesomeBase64) {
@@ -839,10 +1255,10 @@
                 container.style.width = `${node.offsetWidth}px`; container.style.height = `${node.offsetHeight}px`;
                 container.style.position = 'absolute'; container.style.top = '-9999px'; container.style.left = '-9999px';
                 container.style.transform = `scale(${scale})`; container.style.transformOrigin = 'top left';
-                
+
                 // INJECT FONTS INTO CLONE
                 clone.appendChild(fontStyle);
-                
+
                 container.appendChild(clone);
                 document.body.appendChild(container);
 
@@ -882,12 +1298,12 @@
     </style>
 </head>
 <body><div id="design-container">${content}</div></body></html>`;
-            
+
             const blob = new Blob([fullHTML], {type: 'text/html'});
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `nexus_export_${Date.now()}.html`; a.click();
         }
-        
+
         function openNewTabPreview() {
             const w = window.open('', '_blank');
             const fonts = `<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400;700&family=Caveat:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">`;
