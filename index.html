@@ -42,7 +42,6 @@
             font-family: 'Plus Jakarta Sans', sans-serif; 
             min-height: 100vh; overflow-x: hidden; margin: 0; display: flex; 
             transition: all 0.5s ease; -webkit-font-smoothing: antialiased; 
-            touch-action: none; 
         }
 
         .bg-layer { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.8s ease; z-index: 0; }
@@ -58,7 +57,22 @@
         .sidebar { width: 380px; background: var(--bg-panel); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border-right: 1px solid var(--border-subtle); display: flex; flex-direction: column; padding: 1.5rem; z-index: 50; flex-shrink: 0; box-shadow: 10px 0 40px rgba(0,0,0,0.05); height: 100vh; overflow-y: auto; transition: all 0.3s ease; -webkit-overflow-scrolling: touch; }
         .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 10px; }
 
-        .stage-container { flex-grow: 1; position: relative; z-index: 10; background: rgba(0, 0, 0, 0.05); background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 50px 50px; height: 100vh; overflow: auto; display: flex; justify-content: center; padding: 80px; -webkit-overflow-scrolling: touch; }
+        .stage-container { 
+            flex-grow: 1; position: relative; z-index: 10; 
+            background: rgba(0, 0, 0, 0.05); 
+            background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); 
+            background-size: 50px 50px; 
+            height: 100vh; 
+            overflow: hidden; /* Changed to hidden for custom pan/zoom */
+            display: flex; justify-content: center; align-items: center;
+            touch-action: none; /* Handle touches manually */
+        }
+
+        #render-wrapper {
+            transform-origin: center center;
+            transition: transform 0.1s ease-out;
+            will-change: transform;
+        }
 
         #render-target { background-color: white; color: black; box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 50px 100px -20px rgba(0, 0, 0, 0.3); min-height: 400px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; position: relative; transform-style: flat; }
         #render-target * { transform-origin: top left; }
@@ -182,7 +196,7 @@
         /* Briefing Icons */
         .briefing-icon { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white; }
 
-        @media (max-width: 1024px) { body { flex-direction: column; height: auto; overflow: auto; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } .stage-container { height: 70vh; padding: 20px; align-items: flex-start; overflow-x: auto; } #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } }
+        @media (max-width: 1024px) { body { flex-direction: column; height: auto; overflow: auto; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } .stage-container { height: 70vh; padding: 0; align-items: center; overflow: hidden; } #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } }
     </style>
 </head>
 <body class="theme-aurora">
@@ -893,37 +907,67 @@
                 clearInterval(gameInterval);
                 clearInterval(gameTimerInterval);
 
-                const screen = document.getElementById('game-result-screen');
-                const title = document.getElementById('result-title');
-                const status = document.getElementById('core-status');
-                const btnRetry = document.getElementById('btn-retry');
-                const btnFate = document.getElementById('btn-fate');
-                const btnExit = document.getElementById('btn-exit');
+                const showLeaderboard = () => {
+                    const screen = document.getElementById('game-result-screen');
+                    const title = document.getElementById('result-title');
+                    const status = document.getElementById('core-status');
+                    const btnRetry = document.getElementById('btn-retry');
+                    const btnFate = document.getElementById('btn-fate');
+                    const btnExit = document.getElementById('btn-exit');
 
-                screen.classList.remove('hidden');
-                generateLeaderboard(gameScore);
+                    screen.classList.remove('hidden');
+                    generateLeaderboard(gameScore);
 
-                // Update Buttons to use new handlers
-                btnRetry.onclick = () => this.handleRetry();
-                btnFate.onclick = () => this.handleFate();
+                    // Update Buttons to use new handlers
+                    btnRetry.onclick = () => this.handleRetry();
+                    btnFate.onclick = () => this.handleFate();
 
-                if(isWin) {
-                    title.innerText = "BREACH SEALED";
-                    title.className = "text-5xl font-black text-emerald-400 mb-2 animate-bounce";
-                    status.innerText = "STABLE";
-                    status.className = "text-emerald-400 font-bold";
-                    btnRetry.classList.remove('hidden');
-                    btnFate.classList.add('hidden');
-                    btnExit.classList.remove('hidden');
+                    if(isWin) {
+                        title.innerText = "BREACH SEALED";
+                        title.className = "text-5xl font-black text-emerald-400 mb-2 animate-bounce";
+                        status.innerText = "STABLE";
+                        status.className = "text-emerald-400 font-bold";
+                        btnRetry.classList.remove('hidden');
+                        btnFate.classList.add('hidden');
+                        btnExit.classList.remove('hidden');
+                    } else {
+                        title.innerText = "SYSTEM COMPROMISED";
+                        title.className = "text-5xl font-black text-red-500 mb-2 panic-shake";
+                        status.innerText = "CRITICAL";
+                        status.className = "text-red-500 font-bold animate-pulse";
+                        btnRetry.classList.remove('hidden');
+                        btnFate.classList.remove('hidden');
+                        btnExit.classList.add('hidden');
+                    }
+                };
+
+                // UPDATED LOGIC: Trigger Taunt after Game 1 (retryCount === 0)
+                if (this.retryCount === 0) {
+                    this.triggerTaunt(showLeaderboard);
                 } else {
-                    title.innerText = "SYSTEM COMPROMISED";
-                    title.className = "text-5xl font-black text-red-500 mb-2 panic-shake";
-                    status.innerText = "CRITICAL";
-                    status.className = "text-red-500 font-bold animate-pulse";
-                    btnRetry.classList.remove('hidden');
-                    btnFate.classList.remove('hidden');
-                    btnExit.classList.add('hidden');
+                    showLeaderboard();
                 }
+            },
+
+            // NEW TAUNT FUNCTION
+            triggerTaunt: function(callback) {
+                const overlay = document.createElement('div');
+                overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s;";
+
+                overlay.innerHTML = `
+                    <div class="text-6xl text-red-500 font-black mb-6 animate-bounce" style="text-shadow: 0 0 30px red; text-align:center;">"Nice try, loser."</div>
+                    <div class="text-2xl text-slate-400 font-mono italic opacity-0" style="animation:fadeIn 1s 0.5s forwards;">- Dr. Wasupon</div>
+                `;
+                document.body.appendChild(overlay);
+
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.5s';
+                    setTimeout(() => {
+                        overlay.remove();
+                        callback();
+                    }, 500);
+                }, 2500);
             },
 
             winGame: function() { this.showResult(true); },
@@ -932,14 +976,13 @@
             },
 
             triggerWasuponRevenge: function() {
-                // 1. Stop Game
                 clearInterval(gameInterval);
                 clearInterval(gameTimerInterval);
                 document.getElementById('global-game-screen').style.display = 'none';
 
-                // 2. Show Menacing Overlay
                 const overlay = document.createElement('div');
                 overlay.style.cssText = "position:fixed;inset:0;background:black;z-index:999999999;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;animation:fadeIn 0.5s;";
+
                 overlay.innerHTML = `
                     <div style="color:#ef4444;font-size:1.5rem;margin-bottom:20px;letter-spacing:4px;" class="animate-pulse">ACCESS DENIED</div>
                     <div style="color:white;font-size:2.5rem;font-weight:900;text-align:center;margin-bottom:10px;text-shadow:0 0 20px red;">"Did you really think you could defeat me?"</div>
@@ -948,25 +991,20 @@
                 `;
                 document.body.appendChild(overlay);
 
-                // 3. Wait then Trigger Hard Reboot
                 setTimeout(() => {
                     overlay.remove();
-                    this.triggerReboot(true); // true = Hard Reset
+                    this.triggerReboot(true); 
                 }, 4000);
             },
 
             triggerFailure: function() {
-                // 1. Stop Game Logic
                 clearInterval(gameInterval);
                 clearInterval(gameTimerInterval);
-
-                // 2. Hide Game Screen immediately so Fail Screen is visible
                 document.getElementById('global-game-screen').style.display = 'none';
 
-                // 3. Show Fail Screen
                 const failScreen = document.getElementById('global-fail-screen');
                 failScreen.style.display = 'flex';
-                failScreen.style.zIndex = "99999999"; // Ensure it is on top
+                failScreen.style.zIndex = "99999999"; 
 
                 const bar = document.getElementById('restore-bar');
                 const log = document.getElementById('fail-log');
@@ -981,7 +1019,6 @@
                     clearInterval(logInt);
                     failScreen.style.display = 'none';
 
-                    // 4. Transition to Boot Screen
                     const biosScreen = document.getElementById('bios-screen');
                     const bootContainer = document.getElementById('global-boot-screen');
                     bootContainer.style.display = 'flex';
@@ -1020,13 +1057,10 @@
             const playerRank = Math.random() > 0.5 ? 2 : 3;
             let entries = [];
 
-            // Rank 1: Dr. Wasupon (Always)
             entries.push({ rank: 1, name: "Dr. Wasupon", score: (Math.floor((score + 500)/100)*100), isPlayer: false });
 
-            // Calculate Player Score rounded to 100
             const safeScore = Math.floor(score/100)*100;
 
-            // Rank 2
             if (playerRank === 2) {
                 entries.push({ rank: 2, name: "YOU", score: safeScore, isPlayer: true });
             } else {
@@ -1034,7 +1068,6 @@
                 entries.push({ rank: 2, name: r2Name, score: safeScore + 200, isPlayer: false });
             }
 
-            // Rank 3
             if (playerRank === 3) {
                 entries.push({ rank: 3, name: "YOU", score: safeScore, isPlayer: true });
             } else {
@@ -1042,7 +1075,6 @@
                 entries.push({ rank: 3, name: r3Name, score: Math.max(0, safeScore - 100), isPlayer: false });
             }
 
-            // Rank 4 & 5
             entries.push({ rank: 4, name: names[Math.floor(Math.random()*names.length)], score: Math.max(0, safeScore - 400), isPlayer: false });
             entries.push({ rank: 5, name: names[Math.floor(Math.random()*names.length)], score: Math.max(0, safeScore - 800), isPlayer: false });
 
@@ -1171,34 +1203,155 @@
         }
         function triggerDuplicate() { if(selectedElement) { clipboardHTML = selectedElement.outerHTML; triggerPaste(); } }
 
-        function enableEditListeners() { renderTarget.querySelectorAll('*').forEach(el => { el.classList.add('selectable-hover'); el.setAttribute('draggable', false); }); renderTarget.addEventListener('mousedown', handleInputStart); renderTarget.addEventListener('touchstart', handleInputStart, {passive: false}); }
-        function disableEditListeners() { renderTarget.querySelectorAll('*').forEach(el => { el.classList.remove('selectable-hover', 'selected-element'); el.contentEditable = "false"; }); renderTarget.removeEventListener('mousedown', handleInputStart); renderTarget.removeEventListener('touchstart', handleInputStart); }
+        function enableEditListeners() { 
+            renderTarget.querySelectorAll('*').forEach(el => { 
+                el.classList.add('selectable-hover'); 
+                el.setAttribute('draggable', false); 
+            }); 
+            // Removed mousedown/touchstart here, handled by global handler
+        }
+        function disableEditListeners() { 
+            renderTarget.querySelectorAll('*').forEach(el => { 
+                el.classList.remove('selectable-hover', 'selected-element'); 
+                el.contentEditable = "false"; 
+            }); 
+        }
 
-        let isDragging = false; let dragStartX, dragStartY, startMatrix;
+        // --- MOBILE GESTURE CONTROLLER ---
+        const stageContainer = document.querySelector('.stage-container');
+        const renderWrapper = document.getElementById('render-wrapper');
+
+        let panning = false;
+        let startX = 0;
+        let startY = 0;
+        let lastTouchTime = 0;
+
+        // Prevent default touch actions on stage to handle manually
+        stageContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                panning = true;
+                startX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                startY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                e.preventDefault(); // Prevent browser zoom
+            }
+        }, { passive: false });
+
+        stageContainer.addEventListener('touchmove', (e) => {
+            if (panning && e.touches.length === 2) {
+                const currentX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+                // Simple Pan Logic (adjusting scroll)
+                stageContainer.scrollLeft -= (currentX - startX);
+                stageContainer.scrollTop -= (currentY - startY);
+
+                startX = currentX;
+                startY = currentY;
+
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        stageContainer.addEventListener('touchend', () => {
+            panning = false;
+        });
+
+        // --- UNIFIED INPUT HANDLER (MOUSE & TOUCH) ---
+        let isDragging = false; 
+        let dragStartX, dragStartY, startMatrix;
+
         function handleInputStart(e) {
             if (!isEditMode) return;
+
+            // Double Tap Detection for Touch
+            if (e.type === 'touchstart') {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTouchTime;
+                if (tapLength < 300 && tapLength > 0) {
+                    // Double Tap
+                    if (e.target !== renderTarget && !e.target.closest('input') && !e.target.closest('button')) {
+                        e.stopPropagation();
+                        selectElement(e.target, true); // Edit Mode
+                        return;
+                    }
+                }
+                lastTouchTime = currentTime;
+            }
+
             if (e.target === renderTarget) { deselectElement(); return; }
             if (e.target.closest('input') || e.target.closest('button')) return;
-            e.stopPropagation(); selectElement(e.target); isDragging = true;
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            e.stopPropagation(); 
+
+            // Single Click/Tap -> Select & Move
+            selectElement(e.target, false); 
+            isDragging = true;
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             dragStartX = clientX; dragStartY = clientY;
-            const style = window.getComputedStyle(selectedElement); startMatrix = new WebKitCSSMatrix(style.transform);
-            if (e.type === 'mousedown') { document.addEventListener('mousemove', handleMove); document.addEventListener('mouseup', handleEnd); } else { document.addEventListener('touchmove', handleMove, {passive: false}); document.addEventListener('touchend', handleEnd); }
+
+            const style = window.getComputedStyle(selectedElement); 
+            startMatrix = new WebKitCSSMatrix(style.transform);
+
+            if (e.type === 'mousedown') { 
+                document.addEventListener('mousemove', handleMove); 
+                document.addEventListener('mouseup', handleEnd); 
+            } else { 
+                document.addEventListener('touchmove', handleMove, {passive: false}); 
+                document.addEventListener('touchend', handleEnd); 
+            }
         }
+
+        // Attach Global Listeners to Render Target
+        renderTarget.addEventListener('mousedown', handleInputStart);
+        renderTarget.addEventListener('touchstart', handleInputStart, {passive: false});
+        renderTarget.addEventListener('dblclick', (e) => {
+             if (!isEditMode) return;
+             if (e.target !== renderTarget && !e.target.closest('input')) {
+                 e.stopPropagation();
+                 selectElement(e.target, true);
+             }
+        });
+
         function handleMove(e) {
-            if (!isDragging || !selectedElement) return; e.preventDefault();
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            const deltaX = clientX - dragStartX; const deltaY = clientY - dragStartY;
+            if (!isDragging || !selectedElement) return; 
+            e.preventDefault();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const deltaX = clientX - dragStartX; 
+            const deltaY = clientY - dragStartY;
             selectedElement.style.transform = `translate(${startMatrix.m41 + deltaX}px, ${startMatrix.m42 + deltaY}px) scale(${startMatrix.m11})`;
         }
-        function handleEnd() { isDragging = false; document.removeEventListener('mousemove', handleMove); document.removeEventListener('mouseup', handleEnd); document.removeEventListener('touchmove', handleMove); document.removeEventListener('touchend', handleEnd); saveState(); }
-
-        function selectElement(el) {
-            if (selectedElement) { selectedElement.classList.remove('selected-element'); selectedElement.contentEditable = "false"; }
-            selectedElement = el; selectedElement.classList.add('selected-element');
-            const style = window.getComputedStyle(selectedElement); const matrix = new WebKitCSSMatrix(style.transform); editSizeSlider.value = matrix.m11;
-            if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) { el.contentEditable = "true"; el.focus(); }
+        function handleEnd() { 
+            isDragging = false; 
+            document.removeEventListener('mousemove', handleMove); 
+            document.removeEventListener('mouseup', handleEnd); 
+            document.removeEventListener('touchmove', handleMove); 
+            document.removeEventListener('touchend', handleEnd); 
+            saveState(); 
         }
+
+        function selectElement(el, editMode = false) {
+            if (selectedElement && selectedElement !== el) { 
+                selectedElement.classList.remove('selected-element'); 
+                selectedElement.contentEditable = "false"; 
+            }
+            selectedElement = el; 
+            selectedElement.classList.add('selected-element');
+
+            const style = window.getComputedStyle(selectedElement); 
+            const matrix = new WebKitCSSMatrix(style.transform); 
+            editSizeSlider.value = matrix.m11;
+
+            if (editMode && el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) { 
+                el.contentEditable = "true"; 
+                el.focus(); 
+            } else {
+                el.contentEditable = "false";
+            }
+        }
+
         function deselectElement() { if (selectedElement) { selectedElement.classList.remove('selected-element'); selectedElement.contentEditable = "false"; selectedElement = null; } }
         function deleteSelected() { if(selectedElement) { selectedElement.remove(); selectedElement=null; saveState(); } }
         function updateElementSize(val) { if (!selectedElement) return; const style = window.getComputedStyle(selectedElement); const matrix = new WebKitCSSMatrix(style.transform); selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${val})`; }
