@@ -2,235 +2,217 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>HTML me! Studio</title>
     
-    <!-- UI Framework & Fonts -->
+    <!-- UI Framework -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FONT AWESOME: CSS Version -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Expanded Font Library -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400;700&family=Caveat:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
 
     <!-- Capture Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
     <style>
-        /* --- THEME VARIABLES SYSTEM --- */
+        /* --- THEME VARIABLES --- */
         :root {
-            /* OBSIDIAN (Fallback) */
             --bg-deep: #0B0F19;
             --bg-panel: rgba(20, 25, 40, 0.75);
             --accent-primary: #3B82F6;
             --accent-secondary: #8B5CF6;
+            --text-main: #E2E8F0;
+            --text-muted: #94a3b8;
             --border-subtle: rgba(255, 255, 255, 0.08);
             --glass-blur: blur(20px);
+            --hud-bg: rgba(20, 25, 40, 0.75);
+            --hud-text: #E2E8F0;
         }
 
-        /* AURORA (Default) */
-        body.theme-aurora {
-            --bg-deep: #0f0c29;
-            --bg-panel: rgba(255, 255, 255, 0.1);
-            --accent-primary: #ec4899; /* Pink */
-            --accent-secondary: #6366f1; /* Indigo */
-            --border-subtle: rgba(255, 255, 255, 0.2);
-            --glass-blur: blur(15px);
-        }
+        /* Theme Overrides */
+        body.theme-aurora { --bg-deep: #0f0c29; --bg-panel: rgba(255, 255, 255, 0.1); --accent-primary: #ec4899; --accent-secondary: #6366f1; --border-subtle: rgba(255, 255, 255, 0.2); --glass-blur: blur(15px); }
+        body.theme-pearl { --bg-deep: #fdfbf7; --bg-panel: rgba(255, 255, 255, 0.65); --accent-primary: #8b5cf6; --accent-secondary: #d4af37; --text-main: #1e293b; --text-muted: #64748b; --border-subtle: rgba(0, 0, 0, 0.06); --glass-blur: blur(25px); --hud-bg: rgba(255, 255, 255, 0.85); --hud-text: #334155; }
 
-        /* --- BASE LAYOUT --- */
+        /* Base Layout */
         body { 
-            background-color: var(--bg-deep);
-            color: #E2E8F0;
+            background-color: var(--bg-deep); 
+            color: var(--text-main); 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            height: 100vh; 
-            overflow: hidden; 
-            margin: 0;
-            display: flex;
-            transition: all 0.5s ease;
-        }
-
-        /* Background Animations */
-        .bg-layer { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.5s; z-index: 0; }
-        
-        .bg-obsidian {
-            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 40%),
-                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 30%);
-            opacity: 0; 
+            height: 100vh; overflow: hidden; margin: 0; display: flex; 
+            transition: all 0.5s ease; 
+            -webkit-font-smoothing: antialiased; 
+            touch-action: none; /* Prevent scroll bounce on mobile */
         }
         
-        .bg-aurora {
-            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
-            background-size: 400% 400%;
-            animation: auroraBG 15s ease infinite;
-            opacity: 0;
-        }
+        /* Backgrounds */
+        .bg-layer { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.8s ease; z-index: 0; }
+        .bg-obsidian { background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 40%), radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 30%); opacity: 0; }
+        .bg-aurora { background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e); background-size: 400% 400%; animation: auroraBG 15s ease infinite; opacity: 0; }
+        .bg-pearl { background: linear-gradient(135deg, #fdfbf7 0%, #f3e8ff 50%, #fffbeb 100%); opacity: 0; }
+        .bg-pearl::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(212, 175, 55, 0.15), transparent 50%), radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15), transparent 50%); }
+        
+        body.theme-obsidian .bg-obsidian, body.theme-aurora .bg-aurora, body.theme-pearl .bg-pearl { opacity: 1; }
+        @keyframes auroraBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        body:not(.theme-aurora) .bg-obsidian { opacity: 1; }
-        body.theme-aurora .bg-aurora { opacity: 1; }
-
-        @keyframes auroraBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* --- SIDEBAR --- */
+        /* Sidebar & Stage */
         .sidebar { 
             width: 380px; 
-            background: var(--bg-panel);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border-right: 1px solid var(--border-subtle);
-            display: flex; 
-            flex-direction: column; 
-            padding: 1.5rem; 
-            z-index: 50;
-            flex-shrink: 0;
-            box-shadow: 10px 0 40px rgba(0,0,0,0.4);
-            overflow-y: auto;
+            background: var(--bg-panel); 
+            backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); 
+            border-right: 1px solid var(--border-subtle); 
+            display: flex; flex-direction: column; padding: 1.5rem; 
+            z-index: 50; flex-shrink: 0; 
+            box-shadow: 10px 0 40px rgba(0,0,0,0.05); 
+            overflow-y: auto; transition: all 0.3s ease; 
+            -webkit-overflow-scrolling: touch;
         }
+        .sidebar-footer { margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-subtle); display: flex; gap: 10px; }
+        .stage-container { flex-grow: 1; position: relative; z-index: 10; background: rgba(0, 0, 0, 0.05); background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); background-size: 50px 50px; overflow: auto; display: flex; justify-content: center; padding: 80px; -webkit-overflow-scrolling: touch; }
         
-        .sidebar-footer {
-            margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-subtle);
-            display: flex;
-            gap: 10px;
-        }
+        #render-target { background-color: white; color: black; box-shadow: 0 0 0 1px rgba(0,0,0,0.05), 0 50px 100px -20px rgba(0, 0, 0, 0.3); min-height: 400px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; position: relative; transform-style: flat; }
+        #render-target * { transform-origin: top left; }
 
-        /* --- STAGE --- */
-        .stage-container { 
-            flex-grow: 1; 
-            position: relative; 
-            z-index: 10;
-            background: rgba(0, 0, 0, 0.2);
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            overflow: auto; 
-            display: flex;
-            justify-content: center; 
-            padding: 80px; 
-        }
-
-        #render-target {
-            background-color: white;
-            color: black; 
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 50px 100px -20px rgba(0, 0, 0, 0.6);
-            min-height: 400px;
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden; 
-            position: relative;
-            transform-style: preserve-3d; 
-        }
-
-        /* --- CONTROLS --- */
+        /* UI Elements */
         .control-group { margin-bottom: 1.5rem; }
-        .control-label { 
-            font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; 
-            text-transform: uppercase; color: #94a3b8; margin-bottom: 0.75rem; 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
+        .control-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        #html-input { width: 100%; min-height: 180px; background-color: rgba(0, 0, 0, 0.05); color: var(--accent-primary); font-family: 'JetBrains Mono', monospace; font-size: 11px; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 1rem; resize: vertical; outline: none; transition: border-color 0.3s; line-height: 1.5; }
+        body.theme-pearl #html-input { background-color: rgba(255,255,255,0.5); color: #475569; }
+        #html-input:focus { border-color: var(--accent-primary); background-color: rgba(125,125,125,0.1); }
 
-        #html-input {
-            width: 100%; min-height: 180px;
-            background-color: rgba(0, 0, 0, 0.3);
-            color: #a5f3fc;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 1rem; resize: vertical; outline: none;
-            transition: border-color 0.3s; line-height: 1.5;
-        }
-        #html-input:focus { border-color: var(--accent-primary); background-color: rgba(0,0,0,0.5); }
-
-        /* Sliders */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
-            background: #fff; cursor: pointer; margin-top: -6px;
-            box-shadow: 0 0 10px rgba(255,255,255,0.5);
-            border: 2px solid var(--accent-primary);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 4px; cursor: pointer;
-            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-            border-radius: 2px;
-        }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: var(--text-main); cursor: pointer; margin-top: -6px; box-shadow: 0 0 10px rgba(125,125,125,0.5); border: 2px solid var(--accent-primary); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); border-radius: 2px; }
 
-        /* --- HUD TOOLBAR --- */
-        #hud-toolbar {
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%) translateY(150%); 
-            background: var(--bg-panel);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-subtle);
-            padding: 10px 20px; border-radius: 50px;
-            display: flex; gap: 12px; align-items: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            z-index: 100; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        /* HUD Toolbar */
+        #hud-toolbar { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(150%); background: var(--hud-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); padding: 10px 20px; border-radius: 50px; display: flex; gap: 12px; align-items: center; box-shadow: 0 20px 50px rgba(0,0,0,0.15); z-index: 100; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         #hud-toolbar.visible { transform: translateX(-50%) translateY(0); }
-
-        .hud-btn {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
-            color: #E2E8F0; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s; flex-shrink: 0; position: relative;
-        }
-        .hud-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); color: white; }
-        .hud-btn.danger:hover { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+        
+        .hud-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(125,125,125,0.1); border: 1px solid var(--border-subtle); color: var(--hud-text); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; position: relative; }
+        .hud-btn:hover { background: var(--accent-primary); transform: scale(1.1); color: white; border-color: transparent; }
+        .hud-btn.danger:hover { color: white; background: #ef4444; }
         .hidden-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .btn-secondary { background: rgba(125, 125, 125, 0.1); color: var(--text-muted); transition: all 0.2s; }
+        .btn-secondary:hover { background: rgba(125, 125, 125, 0.2); color: var(--text-main); }
 
-        /* --- EDITING VISUALS --- */
-        .editing-active #render-target { outline: 4px solid rgba(59, 130, 246, 0.3); }
+        /* Editing Visuals */
+        .editing-active #render-target { outline: 4px solid var(--accent-primary); outline-offset: 2px; }
         .selectable-hover:hover { outline: 1px dashed var(--accent-primary); cursor: move; }
         .selected-element { outline: 2px solid var(--accent-primary) !important; position: relative; z-index: 100; }
 
-        /* --- EMPTY STATE ANIMATION --- */
-        .empty-state-box {
-            width: 120px; height: 120px;
-            background: linear-gradient(135deg, #ec4899 0%, #6366f1 100%);
-            border-radius: 24px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        /* --- LOADING --- */
-        #loading-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(11, 15, 25, 0.95);
-            z-index: 9999; justify-content: center; align-items: center; flex-direction: column;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--accent-primary); border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
+        /* Toast & Loading */
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--accent-primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; opacity: 0; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        #resolution-warning { display: none; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 10px; margin-top: 10px; color: #fca5a5; font-size: 10px; align-items: start; gap: 8px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        #loading-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* === GLOBAL TRICK OVERLAY (Mobile Safe) === */
+        #global-boot-screen {
+            position: fixed; inset: 0; z-index: 9999999; 
+            background-color: #000; color: #10b981; font-family: 'Courier New', monospace;
+            display: none; flex-direction: column;
+            overflow: hidden;
+            cursor: none;
+            width: 100vw; height: 100vh;
+        }
+        
+        /* BSOD Style */
+        #bsod-screen {
+            background-color: #0078D7; color: white; 
+            font-family: 'Segoe UI', sans-serif;
+            padding: 10% 15%;
+            display: none;
+            flex-direction: column;
+            height: 100%; width: 100%;
+            position: absolute; top: 0; left: 0;
+        }
+        .sad-face { font-size: 100px; margin-bottom: 30px; }
+        .bsod-title { font-size: 24px; margin-bottom: 20px; font-weight: 300; }
+        .bsod-details { font-size: 14px; margin-top: 30px; font-weight: 400; }
+        
+        /* Bios Text */
+        .bios-text { margin-bottom: 5px; text-shadow: 0 0 5px #10b981; padding-left: 20px; }
+        .bios-header { padding: 20px; margin-bottom: 10px; }
+        
+        /* Glitch Animation */
+        .system-glitch { animation: violent-shake 0.2s infinite, color-shift 0.1s infinite; filter: contrast(1.5); }
+        @keyframes violent-shake { 
+            0% { transform: translate(0, 0) rotate(0deg); } 
+            25% { transform: translate(-5px, 5px) rotate(-1deg); } 
+            50% { transform: translate(5px, -5px) rotate(1deg); } 
+            75% { transform: translate(-5px, -5px) rotate(-1deg); } 
+            100% { transform: translate(0, 0) rotate(0deg); } 
+        }
+        @keyframes color-shift { 
+            0% { filter: hue-rotate(0deg) contrast(1.2); } 
+            50% { filter: hue-rotate(90deg) invert(0.2); } 
+            100% { filter: hue-rotate(0deg) contrast(1.2); } 
+        }
+
         /* Mobile */
-        @media (max-width: 1024px) {
-            body { flex-direction: column; height: auto; overflow: auto; }
-            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); }
-            .stage-container { height: 70vh; padding: 20px; align-items: flex-start; }
-            #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; }
+        @media (max-width: 1024px) { 
+            body { flex-direction: column; height: auto; overflow: auto; } 
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } 
+            .stage-container { height: 70vh; padding: 20px; align-items: flex-start; overflow-x: auto; } 
+            #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } 
         }
     </style>
 </head>
 <body class="theme-aurora">
     
+    <!-- GLOBAL TRICK OVERLAY (Initially Hidden) -->
+    <div id="global-boot-screen">
+        <!-- BSOD Container -->
+        <div id="bsod-screen">
+            <div class="sad-face">:(</div>
+            <div class="bsod-title">Your device ran into a problem and needs to restart. We're just collecting some error info, and then we'll restart for you.</div>
+            <div class="bsod-title"><span id="bsod-progress">0</span>% complete</div>
+            <div class="bsod-details">
+                <div class="flex items-center gap-4">
+                    <div class="bg-white w-24 h-24 flex items-center justify-center">
+                        <!-- Fake QR -->
+                        <div class="w-20 h-20 bg-black" style="mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgxdjFIMHptMiAwaDF2MUgyem00IDBoMXYxSDZ6bTIgMGgxdjFIOHptLTYgMmgydjJIMGV6IiBmaWxsPSIjMDAwIi8+PC9zdmc+'); -webkit-mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgxdjFIMHptMiAwaDF2MUgyem00IDBoMXYxSDZ6bTIgMGgxdjFIOHptLTYgMmgydjJIMGV6IiBmaWxsPSIjMDAwIi8+PC9zdmc+'); mask-size: cover;"></div>
+                    </div>
+                    <div>
+                        <p>For more information about this issue and possible fixes, visit https://www.windows.com/stopcode</p>
+                        <br>
+                        <p>If you call a support person, give them this info:</p>
+                        <p>Stop code: CRITICAL_QUANTUM_DECOHERENCE</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- BIOS Container -->
+        <div id="bios-screen" style="display:none; height:100%; padding:20px;">
+            <div class="bios-header">
+                <div style="color:#fff;">NEXUS QUANTUM BIOS v12.5.0</div>
+                <div style="color:#aaa;">Copyright (C) 2025 Nexus Corp.</div>
+                <div style="color:#aaa;">BIOS Date: 11/23/25 03:15:00 Ver: 12.5.0</div>
+            </div>
+            <div id="boot-log" class="space-y-1 text-emerald-500"></div>
+            <div class="mt-2 text-white"><span class="terminal-cursor"></span></div>
+        </div>
+    </div>
+
     <div class="bg-layer bg-obsidian"></div>
     <div class="bg-layer bg-aurora"></div>
+    <div class="bg-layer bg-pearl"></div>
+
+    <div id="toast">Action</div>
 
     <div id="loading-overlay">
         <div class="spinner mb-4"></div>
-        <h2 class="text-xl font-semibold text-white">Processing</h2>
+        <h2 class="text-xl font-semibold text-white">Rendering <span id="render-format-text"></span></h2>
+        <p class="text-sm text-white/60 mt-2">Baking Fonts & Vectors...</p>
     </div>
 
     <!-- Sidebar -->
@@ -240,13 +222,13 @@
                 <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg">
                     <i class="fas fa-layer-group text-white text-xs"></i>
                 </div>
-                <span class="logo-text text-white">HTML me!</span>
+                <span class="logo-text" style="color: var(--text-main)">HTML me!</span>
             </div>
         </div>
 
-        <div class="bg-slate-800/50 p-1 rounded-lg flex mb-6 border border-white/5">
-            <button id="btn-view" onclick="setMode('view')" class="flex-1 py-2 text-xs font-bold rounded text-white bg-slate-700 shadow-sm transition-all">VIEW</button>
-            <button id="btn-edit" onclick="setMode('edit')" class="flex-1 py-2 text-xs font-bold rounded text-slate-400 hover:text-white transition-all">EDIT</button>
+        <div class="bg-slate-500/10 p-1 rounded-lg flex mb-6 border border-white/5">
+            <button id="btn-view" onclick="setMode('view')" class="flex-1 py-2 text-xs font-bold rounded shadow-sm transition-all">VIEW</button>
+            <button id="btn-edit" onclick="setMode('edit')" class="flex-1 py-2 text-xs font-bold rounded transition-all">EDIT</button>
         </div>
 
         <div class="control-group">
@@ -263,30 +245,38 @@
         <div class="control-group">
             <div class="control-label">
                 <span>Canvas Width</span>
-                <span id="width-val" class="text-white font-mono text-[10px] bg-white/10 px-2 rounded">1000px</span>
+                <span id="width-val" class="font-mono text-[10px] bg-white/10 px-2 rounded" style="color:var(--text-main)">1000px</span>
             </div>
             <div class="flex gap-3 items-center">
                 <input type="range" id="width-slider" min="300" max="3000" step="10" value="1000">
-                <button onclick="autoFit()" class="w-8 h-8 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 border border-white/5"><i class="fas fa-compress-arrows-alt text-xs"></i></button>
+                <button onclick="autoFit()" class="btn-secondary w-8 h-8 rounded flex items-center justify-center border border-white/5"><i class="fas fa-compress-arrows-alt text-xs"></i></button>
             </div>
         </div>
 
         <div class="control-group">
-            <div class="control-label"><span>Export Quality</span><span id="quality-val" class="text-blue-400 font-bold text-xs">4K ULTRA</span></div>
-            <input type="range" id="quality-slider" min="1000" max="8000" step="500" value="4000">
+            <div class="control-label"><span>Scale (1K - 12K)</span><span id="quality-val" style="color:var(--accent-primary)" class="font-bold text-xs">2K</span></div>
+            <input type="range" id="quality-slider" min="1" max="12" step="1" value="2">
+            
+            <div id="resolution-warning" class="flex">
+                <i class="fas fa-exclamation-triangle mt-0.5"></i>
+                <div><strong>High Memory Usage</strong><br>10K+ resolution may cause browser freeze.</div>
+            </div>
         </div>
 
-        <button onclick="exportImage()" class="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold text-sm rounded-lg shadow-lg flex items-center justify-center gap-2 group">
-            <span>Export Image</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-        </button>
+        <!-- Export Grid -->
+        <div class="grid grid-cols-4 gap-2 mt-4">
+            <button onclick="exportImage('png')" class="py-3 bg-gradient-to-br from-blue-600 to-blue-500 text-white font-bold text-xs rounded-lg shadow-lg hover:scale-[1.02] transition">PNG</button>
+            <button onclick="exportImage('jpeg')" class="py-3 bg-gradient-to-br from-purple-600 to-purple-500 text-white font-bold text-xs rounded-lg shadow-lg hover:scale-[1.02] transition">JPG</button>
+            <button onclick="exportImage('svg')" class="py-3 bg-gradient-to-br from-orange-500 to-red-500 text-white font-bold text-xs rounded-lg shadow-lg hover:scale-[1.02] transition">SVG</button>
+            <button onclick="exportHTML()" class="py-3 bg-gradient-to-br from-emerald-600 to-emerald-500 text-white font-bold text-xs rounded-lg shadow-lg hover:scale-[1.02] transition" title="Download HTML Code"><i class="fas fa-code"></i></button>
+        </div>
 
-        <!-- Sidebar Footer: Moved Buttons Here -->
         <div class="sidebar-footer">
-            <button onclick="toggleTheme()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded bg-white/5 hover:bg-white/10 text-xs text-slate-300 transition">
-                <i class="fas fa-palette"></i> Theme
+            <button onclick="cycleTheme()" class="btn-secondary flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs transition">
+                <i class="fas fa-palette"></i> <span id="theme-label">Aurora</span>
             </button>
-            <button onclick="openNewTabPreview()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded bg-white/5 hover:bg-white/10 text-xs text-slate-300 transition">
-                <i class="fas fa-external-link-alt"></i> Preview Tab
+            <button onclick="openNewTabPreview()" class="btn-secondary flex-1 flex items-center justify-center gap-2 py-2 rounded text-xs transition">
+                <i class="fas fa-external-link-alt"></i> Preview
             </button>
         </div>
     </div>
@@ -304,58 +294,209 @@
     <div id="hud-toolbar">
         <button class="hud-btn" onclick="historyUndo()" title="Undo"><i class="fas fa-undo"></i></button>
         <button class="hud-btn" onclick="historyRedo()" title="Redo"><i class="fas fa-redo"></i></button>
-        <div class="w-px h-6 bg-white/10 mx-1"></div>
-        <button class="hud-btn" onclick="duplicateSelected()" title="Duplicate (Ctrl+D)"><i class="fas fa-clone"></i></button>
+        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
+        <button class="hud-btn" onclick="triggerDuplicate()" title="Duplicate (Ctrl+D)"><i class="fas fa-clone"></i></button>
         <label class="hud-btn" title="Add Image"><i class="fas fa-image"></i><input type="file" accept="image/*" class="hidden-input" onchange="addImage(this)"></label>
-        <div class="w-px h-6 bg-white/10 mx-1"></div>
-        <label class="hud-btn" title="Text Color"><i class="fas fa-font"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/50"></div><input type="color" class="hidden-input" oninput="updateTextColor(this.value)"></label>
-        <label class="hud-btn" title="Fill Color"><i class="fas fa-fill-drip"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/50"></div><input type="color" class="hidden-input" oninput="updateFillColor(this.value)"></label>
+        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
+        <label class="hud-btn" title="Text Color"><i class="fas fa-font"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/20"></div><input type="color" class="hidden-input" oninput="updateTextColor(this.value)"></label>
+        <label class="hud-btn" title="Fill Color"><i class="fas fa-fill-drip"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/20"></div><input type="color" class="hidden-input" oninput="updateFillColor(this.value)"></label>
         <button class="hud-btn" onclick="cycleFont()" title="Change Font"><i class="fas fa-paragraph"></i></button>
-        <div class="w-px h-6 bg-white/10 mx-1"></div>
+        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
         <div class="w-[100px] flex items-center px-1"><input type="range" id="edit-size-slider" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateElementSize(this.value)"></div>
-        <div class="w-px h-6 bg-white/10 mx-1"></div>
+        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
         <button class="hud-btn danger" onclick="deleteSelected()" title="Delete"><i class="fas fa-trash"></i></button>
     </div>
 
     <script>
-        // --- DEMO CONTENT ---
+        // --- FONT INJECTION HELPER ---
+        let fontAwesomeBase64 = null;
+        fetch('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/webfonts/fa-solid-900.woff2')
+            .then(resp => resp.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onload = function() { fontAwesomeBase64 = reader.result; }
+                reader.readAsDataURL(blob);
+            });
+
+        // --- NEXUS QUANTUM DASHBOARD DEMO ---
         const DEMO_HTML = `
 <style>
-    @keyframes floatCard { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-15px) rotate(1deg); } }
-    @keyframes pulseGlow { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
-    @keyframes shimmerBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    @keyframes spinGeo { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes wave { 0%, 100% { height: 10%; } 50% { height: 90%; } }
+    @keyframes scanV { 0% { top: 0; } 100% { top: 100%; } }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes dashMove { to { stroke-dashoffset: 0; } }
+    .glass-panel { background: rgba(17, 24, 39, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); backdrop-filter: blur(10px); }
+    .glass-panel:hover { border-color: rgba(56, 189, 248, 0.6); box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
 </style>
-<div class="flex items-center justify-center h-[600px] bg-slate-900 font-sans overflow-hidden relative">
-    <div class="absolute top-0 left-0 w-full h-full overflow-hidden">
-        <div class="absolute top-10 left-10 w-72 h-72 bg-purple-600/30 rounded-full blur-[80px] mix-blend-screen animate-[pulseGlow_4s_ease-in-out_infinite]"></div>
-        <div class="absolute bottom-10 right-10 w-96 h-96 bg-blue-600/30 rounded-full blur-[100px] mix-blend-screen animate-[pulseGlow_6s_ease-in-out_infinite_reverse]"></div>
-    </div>
-    <div style="animation: floatCard 6s ease-in-out infinite;" class="relative z-10 w-[600px] backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl p-1 shadow-2xl">
-        <div class="absolute inset-0 rounded-3xl -z-10 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 blur-sm animate-[shimmerBorder_3s_linear_infinite] bg-[length:200%_100%]"></div>
-        <div class="bg-slate-900/60 rounded-[20px] p-12 text-center border border-white/5 h-full flex flex-col items-center justify-center">
-            <div class="w-24 h-24 mb-8 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 transform hover:rotate-12 transition-transform duration-500 cursor-pointer">
-                <i class="fas fa-bolt text-4xl text-white"></i>
+
+<div class="relative flex items-center justify-center h-[700px] bg-[#020617] font-mono p-8 overflow-hidden text-cyan-100" id="main-container">
+    <!-- Background Matrix -->
+    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle, #1e293b 1px, transparent 1px); background-size: 30px 30px;"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-[#020617] via-transparent to-[#020617]"></div>
+
+    <!-- Main Dashboard Frame -->
+    <div id="dashboard-frame" class="relative z-10 w-[1100px] h-[620px] bg-[#0f172a]/90 border border-slate-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/10">
+        
+        <!-- Header -->
+        <div class="h-16 border-b border-slate-800 bg-[#0B1121] flex items-center justify-between px-6">
+            <div class="flex items-center gap-4">
+                <div class="w-8 h-8 bg-cyan-600 rounded flex items-center justify-center text-white shadow-lg shadow-cyan-500/50"><i class="fas fa-cube"></i></div>
+                <div>
+                    <h1 class="text-lg font-bold text-white tracking-widest uppercase">NEXUS <span class="text-cyan-400">QUANTUM CORE</span></h1>
+                    <p class="text-[10px] text-slate-500" id="sys-id">SYS_ID: LOADING...</p>
+                </div>
             </div>
-            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 tracking-tight mb-4 drop-shadow-2xl">
-                HTML me!
-            </h1>
-            <p class="text-xl text-blue-200/70 font-light max-w-md mx-auto leading-relaxed mb-8">
-                The high-fidelity vector rendering engine for designers and developers.
-            </p>
-            <div class="flex gap-4">
-                <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-xs font-mono tracking-widest uppercase">4K Export</span>
-                <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-xs font-mono tracking-widest uppercase">Vector Math</span>
+            <div class="flex gap-4 text-[10px] items-center">
+                <div class="px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> QUANTUM STABLE
+                </div>
+                <!-- REBOOT BUTTON -->
+                <button onclick="window.demoApp.triggerReboot()" class="w-8 h-8 rounded-full bg-red-500/20 border border-red-500/50 flex items-center justify-center text-red-400 hover:bg-red-500 hover:text-white transition shadow-[0_0_10px_rgba(239,68,68,0.4)]">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Grid Content -->
+        <div class="flex-1 p-6 grid grid-cols-4 grid-rows-3 gap-4 overflow-hidden">
+            
+            <!-- 1. Quantum Core (2x2) -->
+            <div class="glass-panel col-span-2 row-span-2 rounded-xl relative flex items-center justify-center overflow-hidden group">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.1),transparent)]"></div>
+                <!-- Rings -->
+                <div class="w-64 h-64 border border-slate-700 rounded-full absolute animate-[spinGeo_20s_linear_infinite]"></div>
+                <div class="w-52 h-52 border border-cyan-500/30 border-dashed rounded-full absolute animate-[spinGeo_15s_linear_infinite_reverse]"></div>
+                <div class="w-40 h-40 border-2 border-cyan-400 rounded-full absolute animate-[spinGeo_8s_linear_infinite] border-t-transparent border-b-transparent"></div>
+                
+                <div class="z-10 text-center bg-black/50 backdrop-blur-sm p-4 rounded-full border border-white/10">
+                    <div class="text-4xl font-bold text-white tracking-tighter" id="core-temp">48°C</div>
+                    <div class="text-[9px] text-cyan-400 tracking-widest uppercase">Core Temp</div>
+                </div>
+                
+                <div class="absolute bottom-4 right-4 text-right">
+                    <div class="text-[10px] text-slate-500">Q-BITS</div>
+                    <div class="text-xl font-bold text-white">1,024</div>
+                </div>
+            </div>
+
+            <!-- 2. Qubit Coherence (Waveform) -->
+            <div class="glass-panel col-span-1 row-span-1 rounded-xl p-4 flex flex-col relative overflow-hidden">
+                <div class="flex justify-between items-start mb-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase"><i class="fas fa-wave-square mr-1 text-fuchsia-400"></i> Coherence</span>
+                    <span class="text-[10px] text-fuchsia-400">99.9%</span>
+                </div>
+                <div class="flex-1 flex items-end gap-1 opacity-80">
+                    <div class="w-1 bg-fuchsia-500 h-[40%] animate-[wave_1s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[70%] animate-[wave_1.2s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[50%] animate-[wave_0.8s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[80%] animate-[wave_1.5s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[60%] animate-[wave_1.1s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[90%] animate-[wave_1.3s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[40%] animate-[wave_0.9s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[70%] animate-[wave_1.4s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[50%] animate-[wave_1s_ease-in-out_infinite]"></div>
+                    <div class="w-1 bg-fuchsia-500 h-[80%] animate-[wave_1.2s_ease-in-out_infinite]"></div>
+                </div>
+            </div>
+
+            <!-- 3. Thermal Array -->
+            <div class="glass-panel col-span-1 row-span-1 rounded-xl p-4 flex flex-col justify-between">
+                <div class="flex justify-between mb-1">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase"><i class="fas fa-thermometer-half mr-1 text-orange-400"></i> Thermals</span>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-[9px]"><span class="w-8 text-slate-500">ZONE A</span><div class="flex-1 h-1 bg-slate-800 rounded"><div class="h-full bg-gradient-to-r from-green-500 to-yellow-500 w-[40%]"></div></div><span class="text-white">34°</span></div>
+                    <div class="flex items-center gap-2 text-[9px]"><span class="w-8 text-slate-500">ZONE B</span><div class="flex-1 h-1 bg-slate-800 rounded"><div class="h-full bg-gradient-to-r from-green-500 to-orange-500 w-[65%]"></div></div><span class="text-white">52°</span></div>
+                    <div class="flex items-center gap-2 text-[9px]"><span class="w-8 text-slate-500">ZONE C</span><div class="flex-1 h-1 bg-slate-800 rounded"><div class="h-full bg-gradient-to-r from-green-500 to-yellow-500 w-[20%]"></div></div><span class="text-white">28°</span></div>
+                </div>
+            </div>
+
+            <!-- 4. Network Topology -->
+            <div class="glass-panel col-span-1 row-span-2 rounded-xl p-4 relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle,rgba(59,130,246,0.1),transparent)]"></div>
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-4"><i class="fas fa-network-wired mr-1 text-blue-400"></i> Topology</div>
+                <div class="flex items-center justify-center h-[140px] relative">
+                    <div class="absolute w-2 h-2 bg-white rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 shadow-[0_0_10px_white]"></div>
+                    <div class="absolute w-2 h-2 bg-blue-500 rounded-full top-10 left-10 animate-pulse"></div>
+                    <div class="absolute w-2 h-2 bg-blue-500 rounded-full bottom-10 right-10 animate-pulse" style="animation-delay: 0.5s;"></div>
+                    <div class="absolute w-2 h-2 bg-blue-500 rounded-full top-10 right-10 animate-pulse" style="animation-delay: 1s;"></div>
+                    <svg class="absolute inset-0 w-full h-full pointer-events-none">
+                        <line x1="50%" y1="50%" x2="25%" y2="25%" stroke="#3b82f6" stroke-width="1" opacity="0.5" />
+                        <line x1="50%" y1="50%" x2="75%" y2="75%" stroke="#3b82f6" stroke-width="1" opacity="0.5" />
+                        <line x1="50%" y1="50%" x2="75%" y2="25%" stroke="#3b82f6" stroke-width="1" opacity="0.5" />
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 5. Event Log -->
+            <div class="glass-panel col-span-2 row-span-1 rounded-xl p-3 font-mono text-[9px] text-slate-400 overflow-hidden relative">
+                <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-b from-[#111827] to-transparent z-10"></div>
+                <div class="space-y-1 h-full overflow-y-auto no-scrollbar" id="event-log">
+                    <div class="text-emerald-500">[10:42:01] SYS_INIT_COMPLETE</div>
+                    <div>[10:42:02] Mounting file systems... OK</div>
+                    <div>[10:42:05] Connecting to Quantum Cloud...</div>
+                    <div class="text-blue-400">[10:42:08] Handshake successful. Encryption: AES-256-GCM</div>
+                    <div class="text-yellow-500">[10:42:12] Warning: Minor variance in Qubit 42</div>
+                    <div class="text-emerald-500 animate-pulse">[10:42:15] Auto-correction applied. Stability: 100%</div>
+                </div>
+            </div>
+
+            <!-- 6. GPU Compute -->
+            <div class="glass-panel col-span-1 row-span-1 rounded-xl p-4 flex items-center gap-4">
+                <div class="relative w-12 h-12 flex items-center justify-center">
+                    <svg class="w-full h-full -rotate-90"><circle cx="24" cy="24" r="20" stroke="#1e293b" stroke-width="4" fill="none"/><circle cx="24" cy="24" r="20" stroke="#8b5cf6" stroke-width="4" stroke-dasharray="125" stroke-dashoffset="40" fill="none" /></svg>
+                    <div class="absolute text-[9px] font-bold text-white">72%</div>
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase">Tensor Load</div>
+                    <div class="text-xs text-violet-400">RTX Acceleration</div>
+                </div>
+            </div>
+
+            <!-- 7. Memory Matrix (New) -->
+            <div class="glass-panel col-span-1 row-span-1 rounded-xl p-4">
+                <div class="text-[10px] font-bold text-slate-400 uppercase mb-2"><i class="fas fa-memory mr-1 text-emerald-400"></i> Mem Matrix</div>
+                <div class="grid grid-cols-10 gap-1 h-[40px]" id="mem-grid">
+                    <!-- JS populates this -->
+                </div>
+            </div>
+
+            <!-- 8. System Info (Bottom Bar) -->
+            <div class="glass-panel col-span-4 row-span-1 h-10 rounded-lg flex items-center justify-between px-4 text-[10px] text-slate-500">
+                <div class="flex gap-6">
+                    <span><i class="fas fa-bolt text-yellow-500 mr-1"></i> 1.35 V</span>
+                    <span><i class="fas fa-database text-blue-500 mr-1"></i> 42 PB Available</span>
+                    <span><i class="fas fa-shield-alt text-emerald-500 mr-1"></i> Protected</span>
+                </div>
+                <div class="font-mono opacity-50">Create by Wasupon Srisatit, MD.</div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL (Initial) -->
+    <div id="reboot-confirm" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-40 flex items-center justify-center hidden">
+        <div class="bg-[#0f172a] border border-red-500/50 p-6 rounded-xl shadow-[0_0_50px_rgba(239,68,68,0.3)] text-center max-w-sm">
+            <div class="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center text-red-500 mx-auto mb-4">
+                <i class="fas fa-exclamation-triangle text-xl"></i>
+            </div>
+            <h3 class="text-white font-bold text-lg mb-2">System Critical</h3>
+            <p class="text-slate-400 text-xs mb-6">Initiating emergency reboot will purge all active quantum states. Are you sure?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="window.demoApp.cancelReboot()" class="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-white text-xs">Cancel</button>
+                <button onclick="window.demoApp.confirmReboot()" class="px-4 py-2 rounded bg-red-600 hover:bg-red-500 text-white text-xs font-bold shadow-lg shadow-red-500/30">CONFIRM REBOOT</button>
             </div>
         </div>
     </div>
 </div>`;
 
         const EMPTY_STATE_HTML = `
-<div class="flex flex-col items-center justify-center h-[500px] text-slate-500 transition-all duration-500">
+<div class="flex flex-col items-center justify-center h-[500px] transition-all duration-500" style="color:var(--text-muted)">
     <div class="empty-state-box mb-6">
         <i class="fas fa-pencil-alt text-4xl text-white"></i>
     </div>
-    <h3 class="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Create</h3>
+    <h3 class="text-2xl font-bold mb-2" style="color:var(--text-main)">Ready to Create</h3>
     <p class="text-sm opacity-60">Type HTML code or Paste content to begin.</p>
 </div>`;
 
@@ -364,13 +505,19 @@
         const hudToolbar = document.getElementById('hud-toolbar');
         const widthSlider = document.getElementById('width-slider');
         const editSizeSlider = document.getElementById('edit-size-slider');
+        const btnView = document.getElementById('btn-view');
+        const btnEdit = document.getElementById('btn-edit');
         
         let isEditMode = false;
         let selectedElement = null;
-        let isAuroraTheme = true; 
-        let clipboardElement = null;
-        let pasteOffsetCount = 1;
+        let clipboardHTML = null; 
         let isDemoActive = true;
+        let pasteCounter = 1;
+        let memInterval;
+
+        const themes = ['theme-aurora', 'theme-pearl', 'theme-obsidian'];
+        const themeNames = ['Aurora', 'Pearl', 'Obsidian'];
+        let themeIndex = 0;
 
         const fontFamilies = ["'Plus Jakarta Sans', sans-serif", "'JetBrains Mono', monospace", "'Playfair Display', serif", "'Caveat', cursive", "'Inter', sans-serif"];
         let fontIndex = 0;
@@ -378,14 +525,157 @@
         const historyStack = [];
         let historyPointer = -1;
 
+        // --- GLOBAL DEMO APP CONTROLLER ---
+        window.demoApp = {
+            initSys: function() {
+                const log = renderTarget.querySelector('#event-log');
+                if(log) {
+                    log.innerHTML += `<div class="text-blue-400 animate-pulse">[${new Date().toLocaleTimeString()}] REBOOT SEQUENCE INITIATED...</div>`;
+                    log.scrollTop = log.scrollHeight;
+                }
+            },
+            triggerReboot: function() {
+                const modal = renderTarget.querySelector('#reboot-confirm');
+                if(modal) modal.classList.remove('hidden');
+            },
+            cancelReboot: function() {
+                const modal = renderTarget.querySelector('#reboot-confirm');
+                if(modal) modal.classList.add('hidden');
+            },
+            confirmReboot: function() {
+                const modal = renderTarget.querySelector('#reboot-confirm');
+                if(modal) modal.classList.add('hidden');
+                
+                // TRIGGER THE TRICK SEQUENCE
+                const bootContainer = document.getElementById('global-boot-screen');
+                const bsodScreen = document.getElementById('bsod-screen');
+                const biosScreen = document.getElementById('bios-screen');
+                const bootLog = document.getElementById('boot-log');
+                const mainBody = document.body;
+
+                // Attempt Fullscreen (Desktop) or Overlay (Mobile Fallback)
+                const requestFS = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+                if (requestFS) {
+                    requestFS.call(document.documentElement).catch(err => {
+                        console.log("Fullscreen denied, using overlay mode");
+                    });
+                }
+
+                // 1. Glitch Effect on body
+                mainBody.style.filter = "invert(1) hue-rotate(180deg)";
+                mainBody.style.transform = "scale(1.02)";
+                
+                setTimeout(() => {
+                    mainBody.style.filter = "none";
+                    mainBody.style.transform = "none";
+                    
+                    // 2. Show Global Overlay
+                    bootContainer.style.display = 'flex';
+                    
+                    // 3. BSOD
+                    bsodScreen.style.display = 'flex';
+                    
+                    // Count up
+                    let percent = 0;
+                    const progress = document.getElementById('bsod-progress');
+                    const interval = setInterval(() => {
+                        percent += Math.floor(Math.random() * 5);
+                        if(percent > 100) percent = 100;
+                        progress.innerText = percent;
+                        if(percent === 100) clearInterval(interval);
+                    }, 300);
+
+                    // 4. Blackout after 5s
+                    setTimeout(() => {
+                        bsodScreen.style.display = 'none';
+                        
+                        // 5. BIOS after 2s black
+                        setTimeout(() => {
+                            biosScreen.style.display = 'block';
+                            
+                            const logs = [
+                                "Initializing Nexus Kernel...",
+                                "Checking NVRAM... 64TB OK",
+                                "Mounting Volume /dev/quantum0... DONE",
+                                "Loading Graphics Subsystem... OK",
+                                "System Check: PASSED",
+                                "Booting Nexus OS..."
+                            ];
+                            
+                            bootLog.innerHTML = "";
+                            let logDelay = 0;
+                            logs.forEach(line => {
+                                setTimeout(() => {
+                                    bootLog.innerHTML += `<div>${line}</div>`;
+                                }, logDelay);
+                                logDelay += Math.random() * 600 + 200;
+                            });
+                            
+                            // 6. Restore
+                            setTimeout(() => {
+                                bootContainer.style.display = 'none';
+                                biosScreen.style.display = 'none';
+                                if (document.exitFullscreen) {
+                                    document.exitFullscreen();
+                                } else if (document.webkitExitFullscreen) {
+                                    document.webkitExitFullscreen();
+                                }
+                            }, logDelay + 1500);
+                            
+                        }, 2000);
+                        
+                    }, 5000);
+                    
+                }, 500); // Glitch duration
+            }
+        };
+
         window.addEventListener('DOMContentLoaded', () => {
             input.value = DEMO_HTML;
             renderContent();
+            updateThemeUI();
+            updateModeUI();
+            
+            // Setup Interactive Demo Features
+            setTimeout(() => {
+                const sysId = renderTarget.querySelector('#sys-id');
+                if(sysId) sysId.innerText = `SYS_ID: ${navigator.platform.toUpperCase()} // ${navigator.userAgent.split(' ')[0]}`;
+                
+                const grid = renderTarget.querySelector('#mem-grid');
+                if(grid) {
+                    let html = '';
+                    for(let i=0; i<50; i++) {
+                        const active = Math.random() > 0.3 ? 'bg-emerald-500/50' : 'bg-slate-700/30';
+                        html += `<div class="w-full h-full rounded-[1px] ${active} transition-colors duration-300"></div>`;
+                    }
+                    grid.innerHTML = html;
+                    
+                    if(memInterval) clearInterval(memInterval);
+                    memInterval = setInterval(() => {
+                        const cells = grid.children;
+                        const idx = Math.floor(Math.random() * cells.length);
+                        const cell = cells[idx];
+                        if(cell) {
+                            if(cell.classList.contains('bg-emerald-500/50')) {
+                                cell.classList.remove('bg-emerald-500/50'); cell.classList.add('bg-slate-700/30');
+                            } else {
+                                cell.classList.remove('bg-slate-700/30'); cell.classList.add('bg-emerald-500/50');
+                            }
+                        }
+                    }, 100);
+                }
+            }, 500);
         });
 
-        function toggleTheme() {
-            isAuroraTheme = !isAuroraTheme;
-            isAuroraTheme ? document.body.classList.add('theme-aurora') : document.body.classList.remove('theme-aurora');
+        function cycleTheme() {
+            document.body.classList.remove(themes[themeIndex]);
+            themeIndex = (themeIndex + 1) % themes.length;
+            document.body.classList.add(themes[themeIndex]);
+            updateThemeUI();
+        }
+
+        function updateThemeUI() {
+            document.getElementById('theme-label').innerText = themeNames[themeIndex];
         }
 
         input.addEventListener('focus', () => {
@@ -415,257 +705,86 @@
             let styles = "";
             doc.querySelectorAll('style').forEach(s => styles += s.outerHTML);
             renderTarget.innerHTML = styles + doc.body.innerHTML;
+            
             if (historyStack.length === 0) saveState();
             if (isEditMode) enableEditListeners();
         }
 
-        function clearCode() { 
-            input.value = ''; 
-            renderContent(); 
-            saveState(); 
-            isDemoActive = false;
-        }
-        
-        async function pasteCode() {
-            try { 
-                input.value = await navigator.clipboard.readText(); 
-                renderContent(); 
-                saveState(); 
-                isDemoActive = false;
-            } 
-            catch (e) { alert("Use Ctrl+V"); }
-        }
+        function clearCode() { input.value = ''; renderContent(); saveState(); isDemoActive = false; }
+        async function pasteCode() { try { input.value = await navigator.clipboard.readText(); renderContent(); saveState(); isDemoActive = false; } catch (e) { alert("Use Ctrl+V"); } }
 
         function setMode(mode) {
             isEditMode = (mode === 'edit');
-            const btnView = document.getElementById('btn-view');
-            const btnEdit = document.getElementById('btn-edit');
-            const activeClass = ['bg-slate-700', 'text-white'];
-            const inactiveClass = ['bg-transparent', 'text-slate-400'];
+            updateModeUI();
+            if (isEditMode) { document.body.classList.add('editing-active'); hudToolbar.classList.add('visible'); enableEditListeners(); } 
+            else { document.body.classList.remove('editing-active'); hudToolbar.classList.remove('visible'); deselectElement(); disableEditListeners(); }
+        }
 
+        function updateModeUI() {
             if (isEditMode) {
-                document.body.classList.add('editing-active');
-                btnEdit.classList.add(...activeClass); btnEdit.classList.remove(...inactiveClass);
-                btnView.classList.remove(...activeClass); btnView.classList.add(...inactiveClass);
-                hudToolbar.classList.add('visible');
-                enableEditListeners();
+                btnEdit.className = "flex-1 py-2 text-xs font-bold rounded bg-slate-600 text-white shadow-inner transition-all";
+                btnView.className = "flex-1 py-2 text-xs font-bold rounded text-slate-400 hover:bg-white/5 transition-all";
             } else {
-                document.body.classList.remove('editing-active');
-                btnView.classList.add(...activeClass); btnView.classList.remove(...inactiveClass);
-                btnEdit.classList.remove(...activeClass); btnEdit.classList.add(...inactiveClass);
-                hudToolbar.classList.remove('visible');
-                deselectElement();
-                disableEditListeners();
+                btnView.className = "flex-1 py-2 text-xs font-bold rounded bg-slate-600 text-white shadow-inner transition-all";
+                btnEdit.className = "flex-1 py-2 text-xs font-bold rounded text-slate-400 hover:bg-white/5 transition-all";
             }
         }
 
-        function duplicateSelected() {
-            if (selectedElement) {
-                performDuplicate(selectedElement);
+        function showToast(msg) { const toast = document.getElementById('toast'); toast.innerText = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
+        function triggerCopy() { if(selectedElement) { clipboardHTML = selectedElement.outerHTML; showToast("Element Copied"); } }
+        function triggerPaste() {
+            if(clipboardHTML) {
+                const wrapper = document.createElement('div'); wrapper.innerHTML = clipboardHTML; const clone = wrapper.firstElementChild;
+                clone.classList.remove('selected-element'); clone.classList.add('selectable-hover');
+                const offset = pasteCounter * 20;
+                clone.style.position = 'absolute'; clone.style.margin = '0'; clone.style.left = (50 + offset) + 'px'; clone.style.top = (50 + offset) + 'px'; clone.style.transform = 'none'; 
+                renderTarget.appendChild(clone);
+                if(isEditMode) { enableEditListeners(); selectElement(clone); }
+                pasteCounter++; showToast("Pasted!"); saveState();
             }
         }
+        function triggerDuplicate() { if(selectedElement) { clipboardHTML = selectedElement.outerHTML; triggerPaste(); } }
 
-        function performDuplicate(original) {
-            const clone = original.cloneNode(true);
-            clone.classList.remove('selected-element');
-            clone.classList.add('selectable-hover');
+        function enableEditListeners() { renderTarget.querySelectorAll('*').forEach(el => { el.classList.add('selectable-hover'); el.setAttribute('draggable', false); }); renderTarget.addEventListener('mousedown', handleInputStart); renderTarget.addEventListener('touchstart', handleInputStart, {passive: false}); }
+        function disableEditListeners() { renderTarget.querySelectorAll('*').forEach(el => { el.classList.remove('selectable-hover', 'selected-element'); el.contentEditable = "false"; }); renderTarget.removeEventListener('mousedown', handleInputStart); renderTarget.removeEventListener('touchstart', handleInputStart); }
 
-            // FIXED LOGIC: Use Transform Translate ONLY
-            // Do not convert position to absolute to avoid collapsing layout.
-            
-            const style = window.getComputedStyle(original);
-            const matrix = new WebKitCSSMatrix(style.transform);
-            
-            // Simply add offset to existing transform
-            const newX = matrix.m41 + 20;
-            const newY = matrix.m42 + 20;
-            
-            clone.style.transform = `translate(${newX}px, ${newY}px) scale(${matrix.m11})`;
-            clone.style.position = style.position; // Inherit position type (usually static or relative)
-
-            // Append to same parent
-            original.parentNode.appendChild(clone);
-
-            if (isEditMode) {
-                enableEditListeners();
-                selectElement(clone);
-            }
-            saveState();
-        }
-
-        function pasteObject(template) {
-            // For pasting, we just append and use transform to position offset
-            const clone = template.cloneNode(true);
-            renderTarget.appendChild(clone);
-            
-            const offset = pasteOffsetCount * 20;
-            
-            // We use transform for positioning to avoid breaking flow if possible,
-            // but for "new" objects, absolute might be expected?
-            // To stay consistent with the "Non-Destructive" fix, we will try to use transform.
-            // However, if it's appended to root, it will appear at bottom.
-            // Let's use absolute for NEW pasted items to ensure visibility,
-            // OR give it a distinct class.
-            
-            // User expectation: Paste should appear near top/center.
-            clone.style.position = 'absolute';
-            clone.style.left = '50px';
-            clone.style.top = '50px';
-            clone.style.margin = '0';
-            clone.style.transform = `translate(${offset}px, ${offset}px)`;
-            
-            pasteOffsetCount++;
-            
-            if(isEditMode) { enableEditListeners(); selectElement(clone); }
-            saveState();
-        }
-
-        function enableEditListeners() {
-            renderTarget.querySelectorAll('*').forEach(el => {
-                el.classList.add('selectable-hover');
-                el.setAttribute('draggable', false); 
-            });
-            renderTarget.addEventListener('mousedown', handleInputStart);
-            renderTarget.addEventListener('touchstart', handleInputStart, {passive: false});
-        }
-
-        function disableEditListeners() {
-            renderTarget.querySelectorAll('*').forEach(el => {
-                el.classList.remove('selectable-hover', 'selected-element');
-                el.contentEditable = "false";
-            });
-            renderTarget.removeEventListener('mousedown', handleInputStart);
-            renderTarget.removeEventListener('touchstart', handleInputStart);
-        }
-
-        let isDragging = false;
-        let dragStartX, dragStartY, startMatrix;
-
+        let isDragging = false; let dragStartX, dragStartY, startMatrix;
         function handleInputStart(e) {
             if (!isEditMode) return;
             if (e.target === renderTarget) { deselectElement(); return; }
             if (e.target.closest('input') || e.target.closest('button')) return;
-
-            e.stopPropagation();
-            selectElement(e.target);
-
-            isDragging = true;
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            dragStartX = clientX;
-            dragStartY = clientY;
-
-            // FIX: Do NOT change position to absolute.
-            // Read current transform matrix instead.
-            const style = window.getComputedStyle(selectedElement);
-            startMatrix = new WebKitCSSMatrix(style.transform);
-
-            if (e.type === 'mousedown') {
-                document.addEventListener('mousemove', handleMove);
-                document.addEventListener('mouseup', handleEnd);
-            } else {
-                document.addEventListener('touchmove', handleMove, {passive: false});
-                document.addEventListener('touchend', handleEnd);
-            }
+            e.stopPropagation(); selectElement(e.target); isDragging = true;
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            dragStartX = clientX; dragStartY = clientY;
+            const style = window.getComputedStyle(selectedElement); startMatrix = new WebKitCSSMatrix(style.transform);
+            if (e.type === 'mousedown') { document.addEventListener('mousemove', handleMove); document.addEventListener('mouseup', handleEnd); } else { document.addEventListener('touchmove', handleMove, {passive: false}); document.addEventListener('touchend', handleEnd); }
         }
-
         function handleMove(e) {
-            if (!isDragging || !selectedElement) return;
-            e.preventDefault();
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            
-            const deltaX = clientX - dragStartX;
-            const deltaY = clientY - dragStartY;
-
-            // Update Transform Translate only
-            // Maintain current scale (m11)
+            if (!isDragging || !selectedElement) return; e.preventDefault();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            const deltaX = clientX - dragStartX; const deltaY = clientY - dragStartY;
             selectedElement.style.transform = `translate(${startMatrix.m41 + deltaX}px, ${startMatrix.m42 + deltaY}px) scale(${startMatrix.m11})`;
         }
-
-        function handleEnd() {
-            isDragging = false;
-            document.removeEventListener('mousemove', handleMove);
-            document.removeEventListener('mouseup', handleEnd);
-            document.removeEventListener('touchmove', handleMove);
-            document.removeEventListener('touchend', handleEnd);
-            saveState();
-        }
+        function handleEnd() { isDragging = false; document.removeEventListener('mousemove', handleMove); document.removeEventListener('mouseup', handleEnd); document.removeEventListener('touchmove', handleMove); document.removeEventListener('touchend', handleEnd); saveState(); }
 
         function selectElement(el) {
-            if (selectedElement) {
-                selectedElement.classList.remove('selected-element');
-                selectedElement.contentEditable = "false";
-            }
-            selectedElement = el;
-            selectedElement.classList.add('selected-element');
-            
-            const style = window.getComputedStyle(selectedElement);
-            const matrix = new WebKitCSSMatrix(style.transform);
-            editSizeSlider.value = matrix.m11;
-
-            if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
-                el.contentEditable = "true";
-                el.focus();
-            }
+            if (selectedElement) { selectedElement.classList.remove('selected-element'); selectedElement.contentEditable = "false"; }
+            selectedElement = el; selectedElement.classList.add('selected-element');
+            const style = window.getComputedStyle(selectedElement); const matrix = new WebKitCSSMatrix(style.transform); editSizeSlider.value = matrix.m11;
+            if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) { el.contentEditable = "true"; el.focus(); }
         }
-
-        function deselectElement() {
-            if (selectedElement) {
-                selectedElement.classList.remove('selected-element');
-                selectedElement.contentEditable = "false";
-                selectedElement = null;
-            }
-        }
-
+        function deselectElement() { if (selectedElement) { selectedElement.classList.remove('selected-element'); selectedElement.contentEditable = "false"; selectedElement = null; } }
         function deleteSelected() { if(selectedElement) { selectedElement.remove(); selectedElement=null; saveState(); } }
-        
-        function updateElementSize(val) {
-            if (!selectedElement) return;
-            const style = window.getComputedStyle(selectedElement);
-            const matrix = new WebKitCSSMatrix(style.transform);
-            // Update scale, keep translate
-            selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${val})`;
-        }
+        function updateElementSize(val) { if (!selectedElement) return; const style = window.getComputedStyle(selectedElement); const matrix = new WebKitCSSMatrix(style.transform); selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${val})`; }
         editSizeSlider.addEventListener('change', saveState);
-
         function updateTextColor(val) { if(selectedElement) { selectedElement.style.color = val; saveState(); } }
-        function updateFillColor(val) { 
-            if(selectedElement) { 
-                if(selectedElement.tagName==='svg'||selectedElement.closest('svg')) selectedElement.style.fill=val; 
-                else selectedElement.style.backgroundColor=val; 
-                saveState(); 
-            } 
-        }
-        function cycleFont() {
-            if(selectedElement) {
-                fontIndex = (fontIndex + 1) % fontFamilies.length;
-                selectedElement.style.fontFamily = fontFamilies[fontIndex];
-                saveState();
-            }
-        }
+        function updateFillColor(val) { if(selectedElement) { if(selectedElement.tagName==='svg'||selectedElement.closest('svg')) selectedElement.style.fill=val; else selectedElement.style.backgroundColor=val; saveState(); } }
+        function cycleFont() { if(selectedElement) { fontIndex = (fontIndex + 1) % fontFamilies.length; selectedElement.style.fontFamily = fontFamilies[fontIndex]; saveState(); } }
         function addImage(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.style.width = "200px"; img.style.position = "absolute";
-                    img.style.top = "100px"; img.style.left = "100px";
-                    renderTarget.appendChild(img);
-                    if(isEditMode) selectElement(img);
-                    saveState();
-                    input.value = ''; 
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
+            if (input.files && input.files[0]) { const reader = new FileReader(); reader.onload = function(e) { const img = document.createElement('img'); img.src = e.target.result; img.style.width = "200px"; img.style.position = "absolute"; img.style.top = "100px"; img.style.left = "100px"; renderTarget.appendChild(img); if(isEditMode) selectElement(img); saveState(); input.value = ''; }; reader.readAsDataURL(input.files[0]); }
         }
 
-        function saveState() {
-            if (historyPointer < historyStack.length - 1) historyStack.splice(historyPointer + 1);
-            historyStack.push(renderTarget.innerHTML);
-            if(historyStack.length > 30) historyStack.shift(); else historyPointer++;
-        }
+        function saveState() { if (historyPointer < historyStack.length - 1) historyStack.splice(historyPointer + 1); historyStack.push(renderTarget.innerHTML); if(historyStack.length > 30) historyStack.shift(); else historyPointer++; }
         function historyUndo() { if(historyPointer > 0) { historyPointer--; renderTarget.innerHTML = historyStack[historyPointer]; if(isEditMode) enableEditListeners(); } }
         function historyRedo() { if(historyPointer < historyStack.length-1) { historyPointer++; renderTarget.innerHTML = historyStack[historyPointer]; if(isEditMode) enableEditListeners(); } }
 
@@ -674,52 +793,95 @@
             const isCtrl = e.ctrlKey || e.metaKey;
             if(isCtrl && e.key === 'z') { e.preventDefault(); historyUndo(); }
             if(isCtrl && e.key === 'y') { e.preventDefault(); historyRedo(); }
-            if(isCtrl && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+            if(isCtrl && e.key === 'd') { e.preventDefault(); triggerDuplicate(); }
             if(e.key === 'Delete') deleteSelected();
-            if(isCtrl && e.key === 'c' && selectedElement) {
-                e.preventDefault(); clipboardElement = selectedElement; 
-            }
-            if(isCtrl && e.key === 'v' && clipboardElement) {
-                e.preventDefault(); pasteObject(clipboardElement);
-            }
+            if(isCtrl && e.key === 'c') { e.preventDefault(); triggerCopy(); }
+            if(isCtrl && e.key === 'v') { e.preventDefault(); triggerPaste(); }
         });
 
-        function autoFit() {
-            renderTarget.style.width = 'fit-content';
-            const w = Math.max(800, Math.min(5000, renderTarget.scrollWidth));
-            renderTarget.style.width = `${w}px`;
-            document.getElementById('width-slider').value = w;
-            document.getElementById('width-val').innerText = `${w}px`;
-        }
-        document.getElementById('width-slider').addEventListener('input', (e) => {
-            renderTarget.style.width = `${e.target.value}px`;
-            document.getElementById('width-val').innerText = `${e.target.value}px`;
-        });
-        document.getElementById('quality-slider').addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            document.getElementById('quality-val').innerText = val > 4000 ? "8K EXTREME" : (val > 2000 ? "4K ULTRA" : "HD");
-        });
+        function autoFit() { renderTarget.style.width = 'fit-content'; const w = Math.max(800, Math.min(5000, renderTarget.scrollWidth)); renderTarget.style.width = `${w}px`; document.getElementById('width-slider').value = w; document.getElementById('width-val').innerText = `${w}px`; }
+        document.getElementById('width-slider').addEventListener('input', (e) => { renderTarget.style.width = `${e.target.value}px`; document.getElementById('width-val').innerText = `${e.target.value}px`; });
+        document.getElementById('quality-slider').addEventListener('input', (e) => { const k = parseInt(e.target.value); const pixels = k * 1000; document.getElementById('quality-val').innerText = `${k}K (${pixels}px)`; const warning = document.getElementById('resolution-warning'); if (k >= 10) warning.style.display = "flex"; else warning.style.display = "none"; });
 
-        function exportImage() {
+        // *** EXPORT ENGINE: DEEP CLONE WITH DATA URI FONT ***
+        function exportImage(format) {
             const wasEdit = isEditMode; if(wasEdit) setMode('view');
-            const loader = document.getElementById('loading-overlay'); loader.style.display='flex';
+            const loader = document.getElementById('loading-overlay'); 
+            document.getElementById('render-format-text').innerText = format.toUpperCase();
+            loader.style.display='flex';
+            
+            // 1. Explicitly Construct Style Tag with FA Font
+            const fontStyle = document.createElement('style');
+            if (fontAwesomeBase64) {
+                fontStyle.textContent = `@font-face { font-family: 'Font Awesome 6 Free'; font-style: normal; font-weight: 900; src: url(${fontAwesomeBase64}) format('woff2'); } .fas { font-family: 'Font Awesome 6 Free'; font-weight: 900; }`;
+            }
+
             setTimeout(() => {
-                const targetW = parseInt(document.getElementById('quality-slider').value);
-                const currentW = renderTarget.offsetWidth;
-                html2canvas(renderTarget, {
-                    scale: targetW/currentW, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', windowWidth: currentW+100
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = `HTMLme_Export_${Date.now()}.png`;
-                    link.href = canvas.toDataURL("image/png"); link.click();
-                    loader.style.display='none'; if(wasEdit) setMode('edit');
-                }).catch(() => { alert("Error"); loader.style.display='none'; });
+                const node = document.getElementById('render-target');
+                const k = parseInt(document.getElementById('quality-slider').value);
+                const targetWidth = k * 1000;
+                const currentWidth = node.offsetWidth;
+                const scale = targetWidth / currentWidth;
+
+                // Clone and Prepare
+                const clone = node.cloneNode(true);
+                const container = document.createElement('div');
+                container.style.width = `${node.offsetWidth}px`; container.style.height = `${node.offsetHeight}px`;
+                container.style.position = 'absolute'; container.style.top = '-9999px'; container.style.left = '-9999px';
+                container.style.transform = `scale(${scale})`; container.style.transformOrigin = 'top left';
+                
+                // INJECT FONTS INTO CLONE
+                clone.appendChild(fontStyle);
+                
+                container.appendChild(clone);
+                document.body.appendChild(container);
+
+                const config = { width: targetWidth, height: node.offsetHeight * scale, style: { transform: `scale(${scale})`, transformOrigin: 'top left', width: `${node.offsetWidth}px`, height: `${node.offsetHeight}px` } };
+
+                let promise;
+                if (format === 'svg') promise = htmlToImage.toSvg(clone);
+                else if (format === 'jpeg') promise = htmlToImage.toJpeg(clone, { ...config, quality: 0.95 });
+                else promise = htmlToImage.toPng(clone, config);
+
+                promise.then((dataUrl) => {
+                    const link = document.createElement('a'); link.download = `HTMLme_Export_${k}K_${Date.now()}.${format==='svg'?'svg':(format==='jpeg'?'jpg':'png')}`; link.href = dataUrl; link.click();
+                    document.body.removeChild(container); loader.style.display='none'; if(wasEdit) setMode('edit');
+                }).catch((err) => { console.error(err); alert("Export Error"); document.body.removeChild(container); loader.style.display='none'; });
             }, 500);
+        }
+
+        // --- EXPORT HTML CODE ---
+        function exportHTML() {
+            const content = renderTarget.innerHTML;
+            const width = renderTarget.style.width || '1000px';
+            const height = renderTarget.offsetHeight + 'px';
+
+            const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Design Export</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #0B0F19; color: #fff; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        #design-container { position: relative; width: ${width}; height: ${height}; background: transparent; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
+        #design-container * { transform-origin: top left; }
+    </style>
+</head>
+<body><div id="design-container">${content}</div></body></html>`;
+            
+            const blob = new Blob([fullHTML], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = `nexus_export_${Date.now()}.html`; a.click();
         }
         
         function openNewTabPreview() {
             const w = window.open('', '_blank');
-            w.document.write(`<html><head><script src="https://cdn.tailwindcss.com"><\/script><\/head><body style="background:#e2e8f0;display:flex;justify-content:center;padding:40px"><div style="background:white;width:${renderTarget.style.width};min-height:100vh;box-shadow:0 10px 25px rgba(0,0,0,0.1)">${renderTarget.innerHTML}</div></body></html>`);
+            const fonts = `<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400;700&family=Caveat:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">`;
+            w.document.write(`<html><head><title>HTML me! Preview</title><script src="https://cdn.tailwindcss.com"><\/script>${fonts}</head><body style="background:#e2e8f0;display:flex;justify-content:center;padding:40px"><div style="background:white;width:${renderTarget.style.width};min-height:100vh;box-shadow:0 10px 25px rgba(0,0,0,0.1);overflow:hidden;position:relative;">${renderTarget.innerHTML}</div></body></html>`);
             w.document.close();
         }
     </script>
