@@ -196,6 +196,20 @@
         /* Briefing Icons */
         .briefing-icon { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white; }
 
+        /* MOBILE GESTURE GUIDE */
+        #mobile-gesture-guide {
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+            padding: 12px 20px; z-index: 90; display: none;
+            flex-direction: column; gap: 8px; width: 90%; max-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .gesture-item { display: flex; align-items: center; gap: 12px; color: #cbd5e1; font-size: 12px; }
+        .gesture-icon { width: 24px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); }
+
         @media (max-width: 1024px) { body { flex-direction: column; height: auto; overflow: auto; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } .stage-container { height: 70vh; padding: 0; align-items: center; overflow: hidden; } #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } }
     </style>
 </head>
@@ -399,6 +413,27 @@
                 <!-- Content Injected Here -->
             </div>
         </div>
+    </div>
+
+    <!-- MOBILE GESTURE GUIDE -->
+    <div id="mobile-gesture-guide">
+        <div class="gesture-item">
+            <div class="gesture-icon"><i class="fas fa-hand-pointer"></i></div>
+            <span><strong>Hold & Drag</strong> to Move</span>
+        </div>
+        <div class="gesture-item">
+            <div class="gesture-icon"><i class="fas fa-mouse-pointer"></i></div>
+            <span><strong>Double Tap</strong> to Edit Text</span>
+        </div>
+        <div class="gesture-item">
+            <div class="gesture-icon"><i class="fas fa-expand-arrows-alt"></i></div>
+            <span><strong>Pinch</strong> to Zoom</span>
+        </div>
+        <div class="gesture-item">
+            <div class="gesture-icon"><i class="fas fa-hand-paper"></i></div>
+            <span><strong>2 Fingers</strong> to Pan</span>
+        </div>
+        <button onclick="document.getElementById('mobile-gesture-guide').style.display='none'" class="mt-2 w-full py-1 bg-white/10 rounded text-xs text-white/60 hover:bg-white/20">Got it</button>
     </div>
 
     <!-- HUD -->
@@ -642,6 +677,7 @@
 
         const historyStack = [];
         let historyPointer = -1;
+        let lastTouchTime = 0;
 
         // --- GLOBAL DEMO APP CONTROLLER ---
         window.demoApp = {
@@ -1174,8 +1210,23 @@
         function setMode(mode) {
             isEditMode = (mode === 'edit');
             updateModeUI();
-            if (isEditMode) { document.body.classList.add('editing-active'); hudToolbar.classList.add('visible'); enableEditListeners(); } 
-            else { document.body.classList.remove('editing-active'); hudToolbar.classList.remove('visible'); deselectElement(); disableEditListeners(); }
+            if (isEditMode) { 
+                document.body.classList.add('editing-active'); 
+                hudToolbar.classList.add('visible'); 
+                enableEditListeners(); 
+
+                // Show Mobile Guide if on mobile
+                if (window.innerWidth < 1024) {
+                    document.getElementById('mobile-gesture-guide').style.display = 'flex';
+                }
+            } 
+            else { 
+                document.body.classList.remove('editing-active'); 
+                hudToolbar.classList.remove('visible'); 
+                deselectElement(); 
+                disableEditListeners(); 
+                document.getElementById('mobile-gesture-guide').style.display = 'none';
+            }
         }
 
         function updateModeUI() {
@@ -1298,6 +1349,8 @@
         // --- UNIFIED INPUT HANDLER (MOUSE & TOUCH) ---
         let isDragging = false; 
         let dragStartX, dragStartY, startMatrix;
+        let initialDragX, initialDragY; // For threshold calculation
+        let hasMovedEnough = false; // Track if threshold passed
 
         function handleInputStart(e) {
             if (!isEditMode) return;
@@ -1328,10 +1381,12 @@
             // Single Click/Tap -> Select & Move
             selectElement(e.target, false); 
             isDragging = true;
+            hasMovedEnough = false; // Reset threshold flag
 
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             dragStartX = clientX; dragStartY = clientY;
+            initialDragX = clientX; initialDragY = clientY;
 
             const style = window.getComputedStyle(selectedElement); 
             startMatrix = new WebKitCSSMatrix(style.transform);
@@ -1358,13 +1413,21 @@
 
         function handleMove(e) {
             if (!isDragging || !selectedElement) return; 
-            e.preventDefault(); // Prevent scrolling while dragging
 
             // Safety check for touch events
             if (e.type.includes('touch') && (!e.touches || e.touches.length === 0)) return;
 
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            // THRESHOLD CHECK (5px)
+            if (!hasMovedEnough) {
+                const moveDist = Math.hypot(clientX - initialDragX, clientY - initialDragY);
+                if (moveDist < 5) return; // Ignore tiny movements (jitter/taps)
+                hasMovedEnough = true;
+            }
+
+            e.preventDefault(); // Prevent scrolling while dragging
 
             // CRITICAL FIX: Adjust delta by the current zoom scale
             const scale = gestureState.scale || 1;
