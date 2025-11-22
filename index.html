@@ -1217,43 +1217,82 @@
             }); 
         }
 
-        // --- MOBILE GESTURE CONTROLLER ---
+        // --- MOBILE GESTURE CONTROLLER (UPDATED) ---
         const stageContainer = document.querySelector('.stage-container');
         const renderWrapper = document.getElementById('render-wrapper');
 
-        let panning = false;
-        let startX = 0;
-        let startY = 0;
-        let lastTouchTime = 0;
+        // State for Pan/Zoom
+        let gestureState = {
+            scale: 1,
+            panning: false,
+            pointX: 0,
+            pointY: 0,
+            startX: 0,
+            startY: 0,
+            startDist: 0,
+            lastScale: 1
+        };
 
-        // Prevent default touch actions on stage to handle manually
+        function getDistance(touches) {
+            return Math.hypot(
+                touches[0].clientX - touches[1].clientX,
+                touches[0].clientY - touches[1].clientY
+            );
+        }
+
+        function getMidpoint(touches) {
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2,
+                y: (touches[0].clientY + touches[1].clientY) / 2
+            };
+        }
+
         stageContainer.addEventListener('touchstart', (e) => {
             if (e.touches.length === 2) {
-                panning = true;
-                startX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                startY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-                e.preventDefault(); // Prevent browser zoom
+                e.preventDefault(); // Prevent default browser zoom
+                gestureState.panning = true;
+
+                // Disable transition for instant response
+                renderWrapper.style.transition = 'none';
+
+                // Calculate start values
+                const mid = getMidpoint(e.touches);
+                // We subtract pointX/Y to "pick up" where we left off
+                gestureState.startX = mid.x - gestureState.pointX;
+                gestureState.startY = mid.y - gestureState.pointY;
+                gestureState.startDist = getDistance(e.touches);
+                gestureState.lastScale = gestureState.scale;
             }
         }, { passive: false });
 
         stageContainer.addEventListener('touchmove', (e) => {
-            if (panning && e.touches.length === 2) {
-                const currentX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-                const currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-
-                // Simple Pan Logic (adjusting scroll)
-                stageContainer.scrollLeft -= (currentX - startX);
-                stageContainer.scrollTop -= (currentY - startY);
-
-                startX = currentX;
-                startY = currentY;
-
+            if (gestureState.panning && e.touches.length === 2) {
                 e.preventDefault();
+
+                // 1. PANNING
+                const mid = getMidpoint(e.touches);
+                gestureState.pointX = mid.x - gestureState.startX;
+                gestureState.pointY = mid.y - gestureState.startY;
+
+                // 2. ZOOMING
+                const dist = getDistance(e.touches);
+                if (dist > 0 && gestureState.startDist > 0) {
+                    const scaleChange = dist / gestureState.startDist;
+                    // Limit zoom 0.5x to 3x
+                    gestureState.scale = Math.min(Math.max(0.5, gestureState.lastScale * scaleChange), 3); 
+                }
+
+                // Apply Transform
+                renderWrapper.style.transform = `translate(${gestureState.pointX}px, ${gestureState.pointY}px) scale(${gestureState.scale})`;
             }
         }, { passive: false });
 
-        stageContainer.addEventListener('touchend', () => {
-            panning = false;
+        stageContainer.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) {
+                gestureState.panning = false;
+                // Re-enable smooth transition for other operations
+                renderWrapper.style.transition = 'transform 0.1s ease-out';
+            }
         });
 
         // --- UNIFIED INPUT HANDLER (MOUSE & TOUCH) ---
@@ -1262,6 +1301,9 @@
 
         function handleInputStart(e) {
             if (!isEditMode) return;
+
+            // UPDATED: Ignore multi-touch gestures for selection/dragging (let the stage handle pan/zoom)
+            if (e.type === 'touchstart' && e.touches.length > 1) return;
 
             // Double Tap Detection for Touch
             if (e.type === 'touchstart') {
