@@ -1349,44 +1349,51 @@
         // --- UNIFIED INPUT HANDLER (MOUSE & TOUCH) ---
         let isDragging = false; 
         let dragStartX, dragStartY, startMatrix;
-        let initialDragX, initialDragY; // For threshold calculation
-        let hasMovedEnough = false; // Track if threshold passed
+        let initialDragX, initialDragY; 
+        let hasMovedEnough = false; 
 
         function handleInputStart(e) {
             if (!isEditMode) return;
 
-            // UPDATED: Ignore multi-touch gestures for selection/dragging (let the stage handle pan/zoom)
+            // 1. Ignore Multi-touch (let stage handle pan/zoom)
             if (e.type === 'touchstart' && e.touches.length > 1) return;
 
-            // Double Tap Detection for Touch
+            // 2. Double Tap Detection (Mobile)
             if (e.type === 'touchstart') {
                 const currentTime = new Date().getTime();
                 const tapLength = currentTime - lastTouchTime;
                 if (tapLength < 300 && tapLength > 0) {
-                    // Double Tap
                     if (e.target !== renderTarget && !e.target.closest('input') && !e.target.closest('button')) {
                         e.stopPropagation();
-                        selectElement(e.target, true); // Edit Mode
+                        e.preventDefault(); // Prevent ghost click
+                        selectElement(e.target, true); // Enter Edit Mode
                         return;
                     }
                 }
                 lastTouchTime = currentTime;
             }
 
+            // 3. Target Validation
             if (e.target === renderTarget) { deselectElement(); return; }
             if (e.target.closest('input') || e.target.closest('button')) return;
 
             e.stopPropagation(); 
 
-            // Single Click/Tap -> Select & Move
+            // 4. Select Element (Single Tap/Click)
+            // Note: We set editMode=false here to ensure dragging works. 
+            // User must double-tap to type.
             selectElement(e.target, false); 
+
             isDragging = true;
-            hasMovedEnough = false; // Reset threshold flag
+            hasMovedEnough = false; 
 
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            dragStartX = clientX; dragStartY = clientY;
-            initialDragX = clientX; initialDragY = clientY;
+
+            dragStartX = clientX; 
+            dragStartY = clientY;
+            initialDragX = clientX; 
+            initialDragY = clientY;
 
             const style = window.getComputedStyle(selectedElement); 
             startMatrix = new WebKitCSSMatrix(style.transform);
@@ -1414,22 +1421,21 @@
         function handleMove(e) {
             if (!isDragging || !selectedElement) return; 
 
-            // Safety check for touch events
             if (e.type.includes('touch') && (!e.touches || e.touches.length === 0)) return;
 
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
 
-            // THRESHOLD CHECK (5px)
+            // 5. Threshold Check (Dead Zone)
             if (!hasMovedEnough) {
                 const moveDist = Math.hypot(clientX - initialDragX, clientY - initialDragY);
-                if (moveDist < 5) return; // Ignore tiny movements (jitter/taps)
+                if (moveDist < 5) return; 
                 hasMovedEnough = true;
             }
 
-            e.preventDefault(); // Prevent scrolling while dragging
+            e.preventDefault(); // Stop scrolling now that we are definitely dragging
 
-            // CRITICAL FIX: Adjust delta by the current zoom scale
+            // 6. Apply Movement with Scale Correction
             const scale = gestureState.scale || 1;
             const deltaX = (clientX - dragStartX) / scale; 
             const deltaY = (clientY - dragStartY) / scale;
