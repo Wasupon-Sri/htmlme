@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML me! Studio</title>
+    
+    <!-- UI Framework & Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Expanded Font Library -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&family=Playfair+Display:wght@400;700&family=Caveat:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Capture Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- THEME VARIABLES SYSTEM --- */
+        :root {
+            /* OBSIDIAN (Fallback) */
+            --bg-deep: #0B0F19;
+            --bg-panel: rgba(20, 25, 40, 0.75);
+            --accent-primary: #3B82F6;
+            --accent-secondary: #8B5CF6;
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --glass-blur: blur(20px);
+        }
+
+        /* AURORA (Default) */
+        body.theme-aurora {
+            --bg-deep: #0f0c29;
+            --bg-panel: rgba(255, 255, 255, 0.1);
+            --accent-primary: #ec4899; /* Pink */
+            --accent-secondary: #6366f1; /* Indigo */
+            --border-subtle: rgba(255, 255, 255, 0.2);
+            --glass-blur: blur(15px);
+        }
+
+        /* --- BASE LAYOUT --- */
+        body { 
+            background-color: var(--bg-deep);
+            color: #E2E8F0;
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            height: 100vh; 
+            overflow: hidden; 
+            margin: 0;
+            display: flex;
+            transition: all 0.5s ease;
+        }
+
+        /* Background Animations */
+        .bg-layer { position: absolute; inset: 0; pointer-events: none; transition: opacity 0.5s; z-index: 0; }
+        
+        .bg-obsidian {
+            background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.1), transparent 40%),
+                        radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1), transparent 30%);
+            opacity: 0; 
+        }
+        
+        .bg-aurora {
+            background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+            background-size: 400% 400%;
+            animation: auroraBG 15s ease infinite;
+            opacity: 0;
+        }
+
+        body:not(.theme-aurora) .bg-obsidian { opacity: 1; }
+        body.theme-aurora .bg-aurora { opacity: 1; }
+
+        @keyframes auroraBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar { 
+            width: 380px; 
+            background: var(--bg-panel);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--border-subtle);
+            display: flex; 
+            flex-direction: column; 
+            padding: 1.5rem; 
+            z-index: 50;
+            flex-shrink: 0;
+            box-shadow: 10px 0 40px rgba(0,0,0,0.4);
+            overflow-y: auto;
+        }
+        
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* --- STAGE --- */
+        .stage-container { 
+            flex-grow: 1; 
+            position: relative; 
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.2);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            overflow: auto; 
+            display: flex;
+            justify-content: center; 
+            padding: 80px; 
+        }
+
+        #render-target {
+            background-color: white;
+            color: black; 
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 50px 100px -20px rgba(0, 0, 0, 0.6);
+            min-height: 400px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden; 
+            position: relative;
+            transform-style: preserve-3d; 
+        }
+
+        /* --- CONTROLS --- */
+        .control-group { margin-bottom: 1.5rem; }
+        .control-label { 
+            font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; 
+            text-transform: uppercase; color: #94a3b8; margin-bottom: 0.75rem; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+
+        #html-input {
+            width: 100%; min-height: 180px;
+            background-color: rgba(0, 0, 0, 0.3);
+            color: #a5f3fc;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1rem; resize: vertical; outline: none;
+            transition: border-color 0.3s; line-height: 1.5;
+        }
+        #html-input:focus { border-color: var(--accent-primary); background-color: rgba(0,0,0,0.5); }
+
+        /* Sliders */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: #fff; cursor: pointer; margin-top: -6px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+            border: 2px solid var(--accent-primary);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: 2px;
+        }
+
+        /* --- HUD TOOLBAR --- */
+        #hud-toolbar {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(150%); 
+            background: var(--bg-panel);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            padding: 10px 20px; border-radius: 50px;
+            display: flex; gap: 12px; align-items: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            z-index: 100; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #hud-toolbar.visible { transform: translateX(-50%) translateY(0); }
+
+        .hud-btn {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border-subtle);
+            color: #E2E8F0; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s; flex-shrink: 0; position: relative;
+        }
+        .hud-btn:hover { background: rgba(255,255,255,0.15); transform: scale(1.1); color: white; }
+        .hud-btn.danger:hover { color: #ef4444; background: rgba(239, 68, 68, 0.15); }
+        .hidden-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+
+        /* --- EDITING VISUALS --- */
+        .editing-active #render-target { outline: 4px solid rgba(59, 130, 246, 0.3); }
+        .selectable-hover:hover { outline: 1px dashed var(--accent-primary); cursor: move; }
+        .selected-element { outline: 2px solid var(--accent-primary) !important; position: relative; z-index: 100; }
+
+        /* --- EMPTY STATE ANIMATION --- */
+        .empty-state-box {
+            width: 120px; height: 120px;
+            background: linear-gradient(135deg, #ec4899 0%, #6366f1 100%);
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        /* --- LOADING --- */
+        #loading-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(11, 15, 25, 0.95);
+            z-index: 9999; justify-content: center; align-items: center; flex-direction: column;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent-primary); border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Mobile */
+        @media (max-width: 1024px) {
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); }
+            .stage-container { height: 70vh; padding: 20px; align-items: flex-start; }
+            #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; }
+        }
+    </style>
+</head>
+<body class="theme-aurora">
+    
+    <div class="bg-layer bg-obsidian"></div>
+    <div class="bg-layer bg-aurora"></div>
+
+    <div id="loading-overlay">
+        <div class="spinner mb-4"></div>
+        <h2 class="text-xl font-semibold text-white">Processing</h2>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar custom-scrollbar">
+        <div class="app-header">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-layer-group text-white text-xs"></i>
+                </div>
+                <span class="logo-text text-white">HTML me!</span>
+            </div>
+        </div>
+
+        <div class="bg-slate-800/50 p-1 rounded-lg flex mb-6 border border-white/5">
+            <button id="btn-view" onclick="setMode('view')" class="flex-1 py-2 text-xs font-bold rounded text-white bg-slate-700 shadow-sm transition-all">VIEW</button>
+            <button id="btn-edit" onclick="setMode('edit')" class="flex-1 py-2 text-xs font-bold rounded text-slate-400 hover:text-white transition-all">EDIT</button>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Source Code</span>
+                <div class="flex gap-2">
+                    <button onclick="pasteCode()" class="text-xs text-blue-400 hover:text-blue-300"><i class="fas fa-paste mr-1"></i>Paste</button>
+                    <button onclick="clearCode()" class="text-xs text-red-400 hover:text-red-300"><i class="fas fa-trash mr-1"></i>Clear</button>
+                </div>
+            </div>
+            <textarea id="html-input" placeholder="<!-- HTML goes here -->" spellcheck="false"></textarea>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Canvas Width</span>
+                <span id="width-val" class="text-white font-mono text-[10px] bg-white/10 px-2 rounded">1000px</span>
+            </div>
+            <div class="flex gap-3 items-center">
+                <input type="range" id="width-slider" min="300" max="3000" step="10" value="1000">
+                <button onclick="autoFit()" class="w-8 h-8 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-300 border border-white/5"><i class="fas fa-compress-arrows-alt text-xs"></i></button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label"><span>Export Quality</span><span id="quality-val" class="text-blue-400 font-bold text-xs">4K ULTRA</span></div>
+            <input type="range" id="quality-slider" min="1000" max="8000" step="500" value="4000">
+        </div>
+
+        <button onclick="exportImage()" class="mt-4 w-full py-4 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold text-sm rounded-lg shadow-lg flex items-center justify-center gap-2 group">
+            <span>Export Image</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+        </button>
+
+        <!-- Sidebar Footer: Moved Buttons Here -->
+        <div class="sidebar-footer">
+            <button onclick="toggleTheme()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded bg-white/5 hover:bg-white/10 text-xs text-slate-300 transition">
+                <i class="fas fa-palette"></i> Theme
+            </button>
+            <button onclick="openNewTabPreview()" class="flex-1 flex items-center justify-center gap-2 py-2 rounded bg-white/5 hover:bg-white/10 text-xs text-slate-300 transition">
+                <i class="fas fa-external-link-alt"></i> Preview Tab
+            </button>
+        </div>
+    </div>
+
+    <!-- Stage -->
+    <div class="stage-container custom-scrollbar">
+        <div id="render-wrapper">
+            <div id="render-target" style="width: 1000px;">
+                <!-- Content Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud-toolbar">
+        <button class="hud-btn" onclick="historyUndo()" title="Undo"><i class="fas fa-undo"></i></button>
+        <button class="hud-btn" onclick="historyRedo()" title="Redo"><i class="fas fa-redo"></i></button>
+        <div class="w-px h-6 bg-white/10 mx-1"></div>
+        <button class="hud-btn" onclick="duplicateSelected()" title="Duplicate (Ctrl+D)"><i class="fas fa-clone"></i></button>
+        <label class="hud-btn" title="Add Image"><i class="fas fa-image"></i><input type="file" accept="image/*" class="hidden-input" onchange="addImage(this)"></label>
+        <div class="w-px h-6 bg-white/10 mx-1"></div>
+        <label class="hud-btn" title="Text Color"><i class="fas fa-font"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/50"></div><input type="color" class="hidden-input" oninput="updateTextColor(this.value)"></label>
+        <label class="hud-btn" title="Fill Color"><i class="fas fa-fill-drip"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/50"></div><input type="color" class="hidden-input" oninput="updateFillColor(this.value)"></label>
+        <button class="hud-btn" onclick="cycleFont()" title="Change Font"><i class="fas fa-paragraph"></i></button>
+        <div class="w-px h-6 bg-white/10 mx-1"></div>
+        <div class="w-[100px] flex items-center px-1"><input type="range" id="edit-size-slider" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateElementSize(this.value)"></div>
+        <div class="w-px h-6 bg-white/10 mx-1"></div>
+        <button class="hud-btn danger" onclick="deleteSelected()" title="Delete"><i class="fas fa-trash"></i></button>
+    </div>
+
+    <script>
+        // --- DEMO CONTENT ---
+        const DEMO_HTML = `
+<style>
+    @keyframes floatCard { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-15px) rotate(1deg); } }
+    @keyframes pulseGlow { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.1); } }
+    @keyframes shimmerBorder { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+</style>
+<div class="flex items-center justify-center h-[600px] bg-slate-900 font-sans overflow-hidden relative">
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden">
+        <div class="absolute top-10 left-10 w-72 h-72 bg-purple-600/30 rounded-full blur-[80px] mix-blend-screen animate-[pulseGlow_4s_ease-in-out_infinite]"></div>
+        <div class="absolute bottom-10 right-10 w-96 h-96 bg-blue-600/30 rounded-full blur-[100px] mix-blend-screen animate-[pulseGlow_6s_ease-in-out_infinite_reverse]"></div>
+    </div>
+    <div style="animation: floatCard 6s ease-in-out infinite;" class="relative z-10 w-[600px] backdrop-blur-2xl bg-white/5 border border-white/10 rounded-3xl p-1 shadow-2xl">
+        <div class="absolute inset-0 rounded-3xl -z-10 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-50 blur-sm animate-[shimmerBorder_3s_linear_infinite] bg-[length:200%_100%]"></div>
+        <div class="bg-slate-900/60 rounded-[20px] p-12 text-center border border-white/5 h-full flex flex-col items-center justify-center">
+            <div class="w-24 h-24 mb-8 rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-indigo-500/30 transform hover:rotate-12 transition-transform duration-500 cursor-pointer">
+                <i class="fas fa-bolt text-4xl text-white"></i>
+            </div>
+            <h1 class="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 via-white to-purple-300 tracking-tight mb-4 drop-shadow-2xl">
+                HTML me!
+            </h1>
+            <p class="text-xl text-blue-200/70 font-light max-w-md mx-auto leading-relaxed mb-8">
+                The high-fidelity vector rendering engine for designers and developers.
+            </p>
+            <div class="flex gap-4">
+                <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-xs font-mono tracking-widest uppercase">4K Export</span>
+                <span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-xs font-mono tracking-widest uppercase">Vector Math</span>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+        const EMPTY_STATE_HTML = `
+<div class="flex flex-col items-center justify-center h-[500px] text-slate-500 transition-all duration-500">
+    <div class="empty-state-box mb-6">
+        <i class="fas fa-pencil-alt text-4xl text-white"></i>
+    </div>
+    <h3 class="text-2xl font-bold text-slate-700 dark:text-slate-300 mb-2">Ready to Create</h3>
+    <p class="text-sm opacity-60">Type HTML code or Paste content to begin.</p>
+</div>`;
+
+        const input = document.getElementById('html-input');
+        const renderTarget = document.getElementById('render-target');
+        const hudToolbar = document.getElementById('hud-toolbar');
+        const widthSlider = document.getElementById('width-slider');
+        const editSizeSlider = document.getElementById('edit-size-slider');
+        
+        let isEditMode = false;
+        let selectedElement = null;
+        let isAuroraTheme = true; 
+        let clipboardElement = null;
+        let pasteOffsetCount = 1;
+        let isDemoActive = true;
+
+        const fontFamilies = ["'Plus Jakarta Sans', sans-serif", "'JetBrains Mono', monospace", "'Playfair Display', serif", "'Caveat', cursive", "'Inter', sans-serif"];
+        let fontIndex = 0;
+        
+        const historyStack = [];
+        let historyPointer = -1;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            input.value = DEMO_HTML;
+            renderContent();
+        });
+
+        function toggleTheme() {
+            isAuroraTheme = !isAuroraTheme;
+            isAuroraTheme ? document.body.classList.add('theme-aurora') : document.body.classList.remove('theme-aurora');
+        }
+
+        input.addEventListener('focus', () => {
+            if (isDemoActive) {
+                input.value = '';
+                renderContent();
+                saveState();
+                isDemoActive = false;
+            }
+        });
+
+        let renderTimeout;
+        input.addEventListener('input', () => {
+            if(isDemoActive) isDemoActive = false;
+            clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(() => { renderContent(); saveState(); }, 600);
+        });
+
+        function renderContent() {
+            const code = input.value;
+            if (!code.trim()) {
+                renderTarget.innerHTML = EMPTY_STATE_HTML;
+                return;
+            }
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(code, 'text/html');
+            let styles = "";
+            doc.querySelectorAll('style').forEach(s => styles += s.outerHTML);
+            renderTarget.innerHTML = styles + doc.body.innerHTML;
+            if (historyStack.length === 0) saveState();
+            if (isEditMode) enableEditListeners();
+        }
+
+        function clearCode() { 
+            input.value = ''; 
+            renderContent(); 
+            saveState(); 
+            isDemoActive = false;
+        }
+        
+        async function pasteCode() {
+            try { 
+                input.value = await navigator.clipboard.readText(); 
+                renderContent(); 
+                saveState(); 
+                isDemoActive = false;
+            } 
+            catch (e) { alert("Use Ctrl+V"); }
+        }
+
+        function setMode(mode) {
+            isEditMode = (mode === 'edit');
+            const btnView = document.getElementById('btn-view');
+            const btnEdit = document.getElementById('btn-edit');
+            const activeClass = ['bg-slate-700', 'text-white'];
+            const inactiveClass = ['bg-transparent', 'text-slate-400'];
+
+            if (isEditMode) {
+                document.body.classList.add('editing-active');
+                btnEdit.classList.add(...activeClass); btnEdit.classList.remove(...inactiveClass);
+                btnView.classList.remove(...activeClass); btnView.classList.add(...inactiveClass);
+                hudToolbar.classList.add('visible');
+                enableEditListeners();
+            } else {
+                document.body.classList.remove('editing-active');
+                btnView.classList.add(...activeClass); btnView.classList.remove(...inactiveClass);
+                btnEdit.classList.remove(...activeClass); btnEdit.classList.add(...inactiveClass);
+                hudToolbar.classList.remove('visible');
+                deselectElement();
+                disableEditListeners();
+            }
+        }
+
+        function duplicateSelected() {
+            if (selectedElement) {
+                performDuplicate(selectedElement);
+            }
+        }
+
+        function performDuplicate(original) {
+            const clone = original.cloneNode(true);
+            clone.classList.remove('selected-element');
+            clone.classList.add('selectable-hover');
+
+            // FIXED LOGIC: Use Transform Translate ONLY
+            // Do not convert position to absolute to avoid collapsing layout.
+            
+            const style = window.getComputedStyle(original);
+            const matrix = new WebKitCSSMatrix(style.transform);
+            
+            // Simply add offset to existing transform
+            const newX = matrix.m41 + 20;
+            const newY = matrix.m42 + 20;
+            
+            clone.style.transform = `translate(${newX}px, ${newY}px) scale(${matrix.m11})`;
+            clone.style.position = style.position; // Inherit position type (usually static or relative)
+
+            // Append to same parent
+            original.parentNode.appendChild(clone);
+
+            if (isEditMode) {
+                enableEditListeners();
+                selectElement(clone);
+            }
+            saveState();
+        }
+
+        function pasteObject(template) {
+            // For pasting, we just append and use transform to position offset
+            const clone = template.cloneNode(true);
+            renderTarget.appendChild(clone);
+            
+            const offset = pasteOffsetCount * 20;
+            
+            // We use transform for positioning to avoid breaking flow if possible,
+            // but for "new" objects, absolute might be expected?
+            // To stay consistent with the "Non-Destructive" fix, we will try to use transform.
+            // However, if it's appended to root, it will appear at bottom.
+            // Let's use absolute for NEW pasted items to ensure visibility,
+            // OR give it a distinct class.
+            
+            // User expectation: Paste should appear near top/center.
+            clone.style.position = 'absolute';
+            clone.style.left = '50px';
+            clone.style.top = '50px';
+            clone.style.margin = '0';
+            clone.style.transform = `translate(${offset}px, ${offset}px)`;
+            
+            pasteOffsetCount++;
+            
+            if(isEditMode) { enableEditListeners(); selectElement(clone); }
+            saveState();
+        }
+
+        function enableEditListeners() {
+            renderTarget.querySelectorAll('*').forEach(el => {
+                el.classList.add('selectable-hover');
+                el.setAttribute('draggable', false); 
+            });
+            renderTarget.addEventListener('mousedown', handleInputStart);
+            renderTarget.addEventListener('touchstart', handleInputStart, {passive: false});
+        }
+
+        function disableEditListeners() {
+            renderTarget.querySelectorAll('*').forEach(el => {
+                el.classList.remove('selectable-hover', 'selected-element');
+                el.contentEditable = "false";
+            });
+            renderTarget.removeEventListener('mousedown', handleInputStart);
+            renderTarget.removeEventListener('touchstart', handleInputStart);
+        }
+
+        let isDragging = false;
+        let dragStartX, dragStartY, startMatrix;
+
+        function handleInputStart(e) {
+            if (!isEditMode) return;
+            if (e.target === renderTarget) { deselectElement(); return; }
+            if (e.target.closest('input') || e.target.closest('button')) return;
+
+            e.stopPropagation();
+            selectElement(e.target);
+
+            isDragging = true;
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            dragStartX = clientX;
+            dragStartY = clientY;
+
+            // FIX: Do NOT change position to absolute.
+            // Read current transform matrix instead.
+            const style = window.getComputedStyle(selectedElement);
+            startMatrix = new WebKitCSSMatrix(style.transform);
+
+            if (e.type === 'mousedown') {
+                document.addEventListener('mousemove', handleMove);
+                document.addEventListener('mouseup', handleEnd);
+            } else {
+                document.addEventListener('touchmove', handleMove, {passive: false});
+                document.addEventListener('touchend', handleEnd);
+            }
+        }
+
+        function handleMove(e) {
+            if (!isDragging || !selectedElement) return;
+            e.preventDefault();
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            
+            const deltaX = clientX - dragStartX;
+            const deltaY = clientY - dragStartY;
+
+            // Update Transform Translate only
+            // Maintain current scale (m11)
+            selectedElement.style.transform = `translate(${startMatrix.m41 + deltaX}px, ${startMatrix.m42 + deltaY}px) scale(${startMatrix.m11})`;
+        }
+
+        function handleEnd() {
+            isDragging = false;
+            document.removeEventListener('mousemove', handleMove);
+            document.removeEventListener('mouseup', handleEnd);
+            document.removeEventListener('touchmove', handleMove);
+            document.removeEventListener('touchend', handleEnd);
+            saveState();
+        }
+
+        function selectElement(el) {
+            if (selectedElement) {
+                selectedElement.classList.remove('selected-element');
+                selectedElement.contentEditable = "false";
+            }
+            selectedElement = el;
+            selectedElement.classList.add('selected-element');
+            
+            const style = window.getComputedStyle(selectedElement);
+            const matrix = new WebKitCSSMatrix(style.transform);
+            editSizeSlider.value = matrix.m11;
+
+            if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) {
+                el.contentEditable = "true";
+                el.focus();
+            }
+        }
+
+        function deselectElement() {
+            if (selectedElement) {
+                selectedElement.classList.remove('selected-element');
+                selectedElement.contentEditable = "false";
+                selectedElement = null;
+            }
+        }
+
+        function deleteSelected() { if(selectedElement) { selectedElement.remove(); selectedElement=null; saveState(); } }
+        
+        function updateElementSize(val) {
+            if (!selectedElement) return;
+            const style = window.getComputedStyle(selectedElement);
+            const matrix = new WebKitCSSMatrix(style.transform);
+            // Update scale, keep translate
+            selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${val})`;
+        }
+        editSizeSlider.addEventListener('change', saveState);
+
+        function updateTextColor(val) { if(selectedElement) { selectedElement.style.color = val; saveState(); } }
+        function updateFillColor(val) { 
+            if(selectedElement) { 
+                if(selectedElement.tagName==='svg'||selectedElement.closest('svg')) selectedElement.style.fill=val; 
+                else selectedElement.style.backgroundColor=val; 
+                saveState(); 
+            } 
+        }
+        function cycleFont() {
+            if(selectedElement) {
+                fontIndex = (fontIndex + 1) % fontFamilies.length;
+                selectedElement.style.fontFamily = fontFamilies[fontIndex];
+                saveState();
+            }
+        }
+        function addImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.style.width = "200px"; img.style.position = "absolute";
+                    img.style.top = "100px"; img.style.left = "100px";
+                    renderTarget.appendChild(img);
+                    if(isEditMode) selectElement(img);
+                    saveState();
+                    input.value = ''; 
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function saveState() {
+            if (historyPointer < historyStack.length - 1) historyStack.splice(historyPointer + 1);
+            historyStack.push(renderTarget.innerHTML);
+            if(historyStack.length > 30) historyStack.shift(); else historyPointer++;
+        }
+        function historyUndo() { if(historyPointer > 0) { historyPointer--; renderTarget.innerHTML = historyStack[historyPointer]; if(isEditMode) enableEditListeners(); } }
+        function historyRedo() { if(historyPointer < historyStack.length-1) { historyPointer++; renderTarget.innerHTML = historyStack[historyPointer]; if(isEditMode) enableEditListeners(); } }
+
+        document.addEventListener('keydown', (e) => {
+            if(document.activeElement === input) return;
+            const isCtrl = e.ctrlKey || e.metaKey;
+            if(isCtrl && e.key === 'z') { e.preventDefault(); historyUndo(); }
+            if(isCtrl && e.key === 'y') { e.preventDefault(); historyRedo(); }
+            if(isCtrl && e.key === 'd') { e.preventDefault(); duplicateSelected(); }
+            if(e.key === 'Delete') deleteSelected();
+            if(isCtrl && e.key === 'c' && selectedElement) {
+                e.preventDefault(); clipboardElement = selectedElement; 
+            }
+            if(isCtrl && e.key === 'v' && clipboardElement) {
+                e.preventDefault(); pasteObject(clipboardElement);
+            }
+        });
+
+        function autoFit() {
+            renderTarget.style.width = 'fit-content';
+            const w = Math.max(800, Math.min(5000, renderTarget.scrollWidth));
+            renderTarget.style.width = `${w}px`;
+            document.getElementById('width-slider').value = w;
+            document.getElementById('width-val').innerText = `${w}px`;
+        }
+        document.getElementById('width-slider').addEventListener('input', (e) => {
+            renderTarget.style.width = `${e.target.value}px`;
+            document.getElementById('width-val').innerText = `${e.target.value}px`;
+        });
+        document.getElementById('quality-slider').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            document.getElementById('quality-val').innerText = val > 4000 ? "8K EXTREME" : (val > 2000 ? "4K ULTRA" : "HD");
+        });
+
+        function exportImage() {
+            const wasEdit = isEditMode; if(wasEdit) setMode('view');
+            const loader = document.getElementById('loading-overlay'); loader.style.display='flex';
+            setTimeout(() => {
+                const targetW = parseInt(document.getElementById('quality-slider').value);
+                const currentW = renderTarget.offsetWidth;
+                html2canvas(renderTarget, {
+                    scale: targetW/currentW, useCORS: true, allowTaint: true, backgroundColor: '#ffffff', windowWidth: currentW+100
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = `HTMLme_Export_${Date.now()}.png`;
+                    link.href = canvas.toDataURL("image/png"); link.click();
+                    loader.style.display='none'; if(wasEdit) setMode('edit');
+                }).catch(() => { alert("Error"); loader.style.display='none'; });
+            }, 500);
+        }
+        
+        function openNewTabPreview() {
+            const w = window.open('', '_blank');
+            w.document.write(`<html><head><script src="https://cdn.tailwindcss.com"><\/script><\/head><body style="background:#e2e8f0;display:flex;justify-content:center;padding:40px"><div style="background:white;width:${renderTarget.style.width};min-height:100vh;box-shadow:0 10px 25px rgba(0,0,0,0.1)">${renderTarget.innerHTML}</div></body></html>`);
+            w.document.close();
+        }
+    </script>
+</body>
+</html>
