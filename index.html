@@ -196,19 +196,40 @@
         /* Briefing Icons */
         .briefing-icon { width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 3px solid white; }
 
-        /* MOBILE GESTURE GUIDE */
+        /* UPDATED GESTURE GUIDE */
         #mobile-gesture-guide {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
-            padding: 12px 20px; z-index: 90; display: none;
-            flex-direction: column; gap: 8px; width: 90%; max-width: 300px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            animation: slideUp 0.3s ease-out;
+            position: fixed; inset: 0; z-index: 99999;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.5s ease;
         }
-        @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-        .gesture-item { display: flex; align-items: center; gap: 12px; color: #cbd5e1; font-size: 12px; }
-        .gesture-icon { width: 24px; height: 24px; background: rgba(255,255,255,0.1); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: var(--accent-primary); }
+        #mobile-gesture-guide.visible { opacity: 1; }
+
+        .gesture-card {
+            background: #1e293b; border: 1px solid rgba(255,255,255,0.1);
+            padding: 2rem; border-radius: 24px; width: 85%; max-width: 360px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        .gesture-row {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+            text-align: left; color: #e2e8f0;
+        }
+        .gesture-icon-box {
+            width: 48px; height: 48px; background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            color: #3b82f6; font-size: 20px; flex-shrink: 0;
+        }
+        .gesture-text strong { display: block; color: white; font-size: 16px; }
+        .gesture-text span { font-size: 13px; color: #94a3b8; }
+
+        .dragging-active {
+            outline: 2px solid #10b981 !important;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            transform: scale(1.05);
+            transition: all 0.2s;
+            z-index: 9999;
+        }
 
         @media (max-width: 1024px) { body { flex-direction: column; height: auto; overflow: auto; } .sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border-subtle); } .stage-container { height: 70vh; padding: 0; align-items: center; overflow: hidden; } #hud-toolbar { width: 95%; justify-content: flex-start; overflow-x: auto; padding: 10px; bottom: 10px; } }
     </style>
@@ -417,23 +438,43 @@
 
     <!-- MOBILE GESTURE GUIDE -->
     <div id="mobile-gesture-guide">
-        <div class="gesture-item">
-            <div class="gesture-icon"><i class="fas fa-hand-pointer"></i></div>
-            <span><strong>Hold & Drag</strong> to Move</span>
+        <div class="gesture-card">
+            <h3 class="text-xl font-bold text-white mb-6">Mobile Controls</h3>
+
+            <div class="gesture-row">
+                <div class="gesture-icon-box"><i class="fas fa-hand-pointer"></i></div>
+                <div class="gesture-text">
+                    <strong>Hold & Drag</strong>
+                    <span>Hold element for 0.5s to move</span>
+                </div>
+            </div>
+
+            <div class="gesture-row">
+                <div class="gesture-icon-box"><i class="fas fa-mouse-pointer"></i></div>
+                <div class="gesture-text">
+                    <strong>Double Tap</strong>
+                    <span>Edit text content</span>
+                </div>
+            </div>
+
+            <div class="gesture-row">
+                <div class="gesture-icon-box"><i class="fas fa-expand-arrows-alt"></i></div>
+                <div class="gesture-text">
+                    <strong>Pinch to Zoom</strong>
+                    <span>Use 2 fingers to zoom in/out</span>
+                </div>
+            </div>
+
+            <div class="gesture-row">
+                <div class="gesture-icon-box"><i class="fas fa-hand-paper"></i></div>
+                <div class="gesture-text">
+                    <strong>Pan Canvas</strong>
+                    <span>Drag background with 1 finger</span>
+                </div>
+            </div>
+
+            <button onclick="dismissGuide()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/30">I Understand</button>
         </div>
-        <div class="gesture-item">
-            <div class="gesture-icon"><i class="fas fa-mouse-pointer"></i></div>
-            <span><strong>Double Tap</strong> to Edit Text</span>
-        </div>
-        <div class="gesture-item">
-            <div class="gesture-icon"><i class="fas fa-expand-arrows-alt"></i></div>
-            <span><strong>Pinch</strong> to Zoom</span>
-        </div>
-        <div class="gesture-item">
-            <div class="gesture-icon"><i class="fas fa-hand-paper"></i></div>
-            <span><strong>2 Fingers</strong> to Pan</span>
-        </div>
-        <button onclick="document.getElementById('mobile-gesture-guide').style.display='none'" class="mt-2 w-full py-1 bg-white/10 rounded text-xs text-white/60 hover:bg-white/20">Got it</button>
     </div>
 
     <!-- HUD -->
@@ -1217,7 +1258,9 @@
 
                 // Show Mobile Guide if on mobile
                 if (window.innerWidth < 1024) {
-                    document.getElementById('mobile-gesture-guide').style.display = 'flex';
+                    const guide = document.getElementById('mobile-gesture-guide');
+                    guide.style.display = 'flex';
+                    setTimeout(() => guide.classList.add('visible'), 10);
                 }
             } 
             else { 
@@ -1225,8 +1268,15 @@
                 hudToolbar.classList.remove('visible'); 
                 deselectElement(); 
                 disableEditListeners(); 
-                document.getElementById('mobile-gesture-guide').style.display = 'none';
+                document.getElementById('mobile-gesture-guide').classList.remove('visible');
+                setTimeout(() => document.getElementById('mobile-gesture-guide').style.display = 'none', 500);
             }
+        }
+
+        function dismissGuide() {
+            const guide = document.getElementById('mobile-gesture-guide');
+            guide.classList.remove('visible');
+            setTimeout(() => guide.style.display = 'none', 500);
         }
 
         function updateModeUI() {
@@ -1268,148 +1318,207 @@
             }); 
         }
 
-        // --- MOBILE GESTURE CONTROLLER (UPDATED) ---
+        // --- REFINED MOBILE GESTURE CONTROLLER ---
         const stageContainer = document.querySelector('.stage-container');
         const renderWrapper = document.getElementById('render-wrapper');
 
-        // State for Pan/Zoom
+        // State
         let gestureState = {
             scale: 1,
             panning: false,
-            pointX: 0,
-            pointY: 0,
-            startX: 0,
-            startY: 0,
-            startDist: 0,
-            lastScale: 1
+            pointX: 0, pointY: 0,
+            startX: 0, startY: 0,
+            startDist: 0, lastScale: 1
         };
 
-        function getDistance(touches) {
-            return Math.hypot(
-                touches[0].clientX - touches[1].clientX,
-                touches[0].clientY - touches[1].clientY
-            );
-        }
+        let holdTimer = null;
+        let isDragging = false;
+        let dragTarget = null;
+        let dragStartCoords = { x: 0, y: 0 };
+        let elementStartMatrix = null;
 
-        function getMidpoint(touches) {
-            return {
-                x: (touches[0].clientX + touches[1].clientX) / 2,
-                y: (touches[0].clientY + touches[1].clientY) / 2
-            };
-        }
+        function getDistance(touches) { return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY); }
+        function getMidpoint(touches) { return { x: (touches[0].clientX + touches[1].clientX) / 2, y: (touches[0].clientY + touches[1].clientY) / 2 }; }
 
+        // 1. STAGE TOUCH HANDLER (Pan & Zoom)
         stageContainer.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                e.preventDefault(); // Prevent default browser zoom
-                gestureState.panning = true;
+            // If touching an element (and not background), ignore here initially
+            // We let the element handler decide if it's a hold or a tap
+            const isElement = e.target !== renderTarget && e.target !== stageContainer && e.target !== renderWrapper;
 
-                // Disable transition for instant response
+            // 2 Fingers = Pinch/Zoom (Always allowed)
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                // Cancel any pending element drag
+                clearTimeout(holdTimer);
+                isDragging = false;
+                if(dragTarget) dragTarget.classList.remove('dragging-active');
+
+                gestureState.panning = true;
                 renderWrapper.style.transition = 'none';
 
-                // Calculate start values
                 const mid = getMidpoint(e.touches);
-                // We subtract pointX/Y to "pick up" where we left off
                 gestureState.startX = mid.x - gestureState.pointX;
                 gestureState.startY = mid.y - gestureState.pointY;
                 gestureState.startDist = getDistance(e.touches);
                 gestureState.lastScale = gestureState.scale;
+                return;
+            }
+
+            // 1 Finger on Background = Pan
+            if (e.touches.length === 1 && !isElement) {
+                gestureState.panning = true;
+                renderWrapper.style.transition = 'none';
+                gestureState.startX = e.touches[0].clientX - gestureState.pointX;
+                gestureState.startY = e.touches[0].clientY - gestureState.pointY;
             }
         }, { passive: false });
 
         stageContainer.addEventListener('touchmove', (e) => {
-            if (gestureState.panning && e.touches.length === 2) {
+            // 1. PINCH ZOOM / 2-FINGER PAN
+            if (e.touches.length === 2) {
                 e.preventDefault();
-
-                // 1. PANNING
                 const mid = getMidpoint(e.touches);
                 gestureState.pointX = mid.x - gestureState.startX;
                 gestureState.pointY = mid.y - gestureState.startY;
 
-                // 2. ZOOMING
                 const dist = getDistance(e.touches);
                 if (dist > 0 && gestureState.startDist > 0) {
                     const scaleChange = dist / gestureState.startDist;
-                    // Limit zoom 0.5x to 3x
-                    gestureState.scale = Math.min(Math.max(0.5, gestureState.lastScale * scaleChange), 3); 
+                    gestureState.scale = Math.min(Math.max(0.5, gestureState.lastScale * scaleChange), 4);
                 }
+                renderWrapper.style.transform = `translate(${gestureState.pointX}px, ${gestureState.pointY}px) scale(${gestureState.scale})`;
+                return;
+            }
 
-                // Apply Transform
+            // 2. BACKGROUND PAN (1 Finger)
+            if (e.touches.length === 1 && gestureState.panning && !isDragging) {
+                e.preventDefault(); // Stop browser scroll
+                gestureState.pointX = e.touches[0].clientX - gestureState.startX;
+                gestureState.pointY = e.touches[0].clientY - gestureState.startY;
                 renderWrapper.style.transform = `translate(${gestureState.pointX}px, ${gestureState.pointY}px) scale(${gestureState.scale})`;
             }
         }, { passive: false });
 
         stageContainer.addEventListener('touchend', (e) => {
             if (e.touches.length < 2) {
-                gestureState.panning = false;
-                // Re-enable smooth transition for other operations
-                renderWrapper.style.transition = 'transform 0.1s ease-out';
+                // If we were panning, stop
+                if (gestureState.panning && !isDragging) {
+                    gestureState.panning = false;
+                    renderWrapper.style.transition = 'transform 0.1s ease-out';
+                }
             }
         });
 
-        // --- UNIFIED INPUT HANDLER (MOUSE & TOUCH) ---
-        let isDragging = false; 
-        let dragStartX, dragStartY, startMatrix;
-        let initialDragX, initialDragY; 
-        let hasMovedEnough = false; 
-
-        function handleInputStart(e) {
+        // 2. ELEMENT INTERACTION (Hold to Drag)
+        function handleElementTouchStart(e) {
             if (!isEditMode) return;
+            if (e.touches.length > 1) return; // Ignore multi-touch
 
-            // 1. Ignore Multi-touch (let stage handle pan/zoom)
-            if (e.type === 'touchstart' && e.touches.length > 1) return;
+            const target = e.target;
+            if (target === renderTarget || target.closest('.stage-container')) return; // Ignore background
 
-            // 2. Double Tap Detection (Mobile)
-            if (e.type === 'touchstart') {
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTouchTime;
-                if (tapLength < 300 && tapLength > 0) {
-                    if (e.target !== renderTarget && !e.target.closest('input') && !e.target.closest('button')) {
-                        e.stopPropagation();
-                        e.preventDefault(); // Prevent ghost click
-                        selectElement(e.target, true); // Enter Edit Mode
-                        return;
-                    }
+            e.stopPropagation(); // Don't trigger background pan yet
+
+            dragTarget = target;
+            const touch = e.touches[0];
+            const startX = touch.clientX;
+            const startY = touch.clientY;
+
+            // Start HOLD Timer
+            holdTimer = setTimeout(() => {
+                // HOLD COMPLETE -> START DRAG
+                isDragging = true;
+                gestureState.panning = false; // Disable background pan
+
+                // Visual Feedback
+                dragTarget.classList.add('dragging-active');
+                if (navigator.vibrate) navigator.vibrate(50); // Haptic
+
+                selectElement(dragTarget, false);
+
+                // Prep Drag Math
+                dragStartCoords = { x: startX, y: startY };
+                const style = window.getComputedStyle(dragTarget);
+                elementStartMatrix = new WebKitCSSMatrix(style.transform);
+
+            }, 500); // 500ms Hold Time
+
+            // Monitor for movement BEFORE hold completes (Cancel if moving)
+            const cancelHold = (moveEvent) => {
+                const mx = moveEvent.touches[0].clientX;
+                const my = moveEvent.touches[0].clientY;
+                const dist = Math.hypot(mx - startX, my - startY);
+
+                if (dist > 10) { // Moved > 10px
+                    clearTimeout(holdTimer);
+                    // If we moved without holding, it's likely a scroll or accidental swipe.
+                    // We do NOT enable dragging.
                 }
-                lastTouchTime = currentTime;
-            }
+            };
 
-            // 3. Target Validation
-            if (e.target === renderTarget) { deselectElement(); return; }
-            if (e.target.closest('input') || e.target.closest('button')) return;
+            const endTouch = () => {
+                clearTimeout(holdTimer);
+                if (!isDragging) {
+                    // It was a tap (short touch)
+                    // Handle Double Tap logic here if needed, or just select
+                    // For now, simple select:
+                    selectElement(target, false);
+                }
+                // Cleanup
+                isDragging = false;
+                if(dragTarget) dragTarget.classList.remove('dragging-active');
+                dragTarget = null;
+                document.removeEventListener('touchmove', cancelHold);
+                document.removeEventListener('touchend', endTouch);
+            };
 
-            e.stopPropagation(); 
+            document.addEventListener('touchmove', (ev) => {
+                if (isDragging) {
+                    ev.preventDefault(); // Stop scroll
+                    handleElementDrag(ev);
+                } else {
+                    cancelHold(ev);
+                }
+            }, { passive: false });
 
-            // 4. Select Element (Single Tap/Click)
-            // Note: We set editMode=false here to ensure dragging works. 
-            // User must double-tap to type.
-            selectElement(e.target, false); 
-
-            isDragging = true;
-            hasMovedEnough = false; 
-
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-            dragStartX = clientX; 
-            dragStartY = clientY;
-            initialDragX = clientX; 
-            initialDragY = clientY;
-
-            const style = window.getComputedStyle(selectedElement); 
-            startMatrix = new WebKitCSSMatrix(style.transform);
-
-            if (e.type === 'mousedown') { 
-                document.addEventListener('mousemove', handleMove); 
-                document.addEventListener('mouseup', handleEnd); 
-            } else { 
-                document.addEventListener('touchmove', handleMove, {passive: false}); 
-                document.addEventListener('touchend', handleEnd); 
-            }
+            document.addEventListener('touchend', endTouch);
         }
 
-        // Attach Global Listeners to Render Target
-        renderTarget.addEventListener('mousedown', handleInputStart);
-        renderTarget.addEventListener('touchstart', handleInputStart, {passive: false});
+        function handleElementDrag(e) {
+            if (!isDragging || !dragTarget) return;
+
+            const touch = e.touches[0];
+            const scale = gestureState.scale || 1;
+
+            // Calculate Delta adjusted by Zoom Scale
+            const deltaX = (touch.clientX - dragStartCoords.x) / scale;
+            const deltaY = (touch.clientY - dragStartCoords.y) / scale;
+
+            dragTarget.style.transform = `translate(${elementStartMatrix.m41 + deltaX}px, ${elementStartMatrix.m42 + deltaY}px) scale(${elementStartMatrix.m11})`;
+        }
+
+        // Attach to Render Target (Delegation)
+        renderTarget.addEventListener('touchstart', handleElementTouchStart, { passive: false });
+
+        // --- MOUSE INPUT HANDLER (Desktop) ---
+        renderTarget.addEventListener('mousedown', (e) => {
+            if (!isEditMode) return;
+            if (e.target === renderTarget) { deselectElement(); return; }
+
+            e.stopPropagation();
+            selectElement(e.target, false);
+
+            isDragging = true;
+            dragTarget = e.target;
+            dragStartCoords = { x: e.clientX, y: e.clientY };
+            const style = window.getComputedStyle(dragTarget);
+            elementStartMatrix = new WebKitCSSMatrix(style.transform);
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        });
+
         renderTarget.addEventListener('dblclick', (e) => {
              if (!isEditMode) return;
              if (e.target !== renderTarget && !e.target.closest('input')) {
@@ -1418,37 +1527,21 @@
              }
         });
 
-        function handleMove(e) {
-            if (!isDragging || !selectedElement) return; 
-
-            if (e.type.includes('touch') && (!e.touches || e.touches.length === 0)) return;
-
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-            // 5. Threshold Check (Dead Zone)
-            if (!hasMovedEnough) {
-                const moveDist = Math.hypot(clientX - initialDragX, clientY - initialDragY);
-                if (moveDist < 5) return; 
-                hasMovedEnough = true;
-            }
-
-            e.preventDefault(); // Stop scrolling now that we are definitely dragging
-
-            // 6. Apply Movement with Scale Correction
+        function handleMouseMove(e) {
+            if (!isDragging || !dragTarget) return;
+            e.preventDefault();
             const scale = gestureState.scale || 1;
-            const deltaX = (clientX - dragStartX) / scale; 
-            const deltaY = (clientY - dragStartY) / scale;
-
-            selectedElement.style.transform = `translate(${startMatrix.m41 + deltaX}px, ${startMatrix.m42 + deltaY}px) scale(${startMatrix.m11})`;
+            const deltaX = (e.clientX - dragStartCoords.x) / scale;
+            const deltaY = (e.clientY - dragStartCoords.y) / scale;
+            dragTarget.style.transform = `translate(${elementStartMatrix.m41 + deltaX}px, ${elementStartMatrix.m42 + deltaY}px) scale(${elementStartMatrix.m11})`;
         }
-        function handleEnd() { 
-            isDragging = false; 
-            document.removeEventListener('mousemove', handleMove); 
-            document.removeEventListener('mouseup', handleEnd); 
-            document.removeEventListener('touchmove', handleMove); 
-            document.removeEventListener('touchend', handleEnd); 
-            saveState(); 
+
+        function handleMouseUp() {
+            isDragging = false;
+            dragTarget = null;
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            saveState();
         }
 
         function selectElement(el, editMode = false) {
