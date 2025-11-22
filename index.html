@@ -1358,11 +1358,19 @@
 
         function handleMove(e) {
             if (!isDragging || !selectedElement) return; 
-            e.preventDefault();
+            e.preventDefault(); // Prevent scrolling while dragging
+
+            // Safety check for touch events
+            if (e.type.includes('touch') && (!e.touches || e.touches.length === 0)) return;
+
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX; 
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            const deltaX = clientX - dragStartX; 
-            const deltaY = clientY - dragStartY;
+
+            // CRITICAL FIX: Adjust delta by the current zoom scale
+            const scale = gestureState.scale || 1;
+            const deltaX = (clientX - dragStartX) / scale; 
+            const deltaY = (clientY - dragStartY) / scale;
+
             selectedElement.style.transform = `translate(${startMatrix.m41 + deltaX}px, ${startMatrix.m42 + deltaY}px) scale(${startMatrix.m11})`;
         }
         function handleEnd() { 
