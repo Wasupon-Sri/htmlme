@@ -5,19 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>HTML me! Studio</title>
+    <title>HTML me! Studio - Mobile Pro</title>
 
     <!-- UI Framework -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- FONT AWESOME -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Capture Engine -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;800&family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-
-    <!-- Capture Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
     <style>
         /* --- THEME VARIABLES --- */
@@ -30,8 +28,43 @@
             --text-muted: #94a3b8;
             --border-subtle: rgba(255, 255, 255, 0.08);
             --glass-blur: blur(20px);
-            --hud-bg: rgba(20, 25, 40, 0.75);
+            --hud-bg: rgba(20, 25, 40, 0.85);
             --hud-text: #E2E8F0;
+        }
+
+        /* --- CRITICAL MOBILE FIXES --- */
+        
+        /* 1. DEFAULT STATE: Allow Text Selection (Native Browser Behavior) */
+        .editing-active .selectable-hover {
+            -webkit-user-select: text;   
+            user-select: text;           
+            touch-action: manipulation;  /* Allow pan/zoom, but optimize for tap */
+            cursor: text;
+        }
+
+        /* 2. MOVE MODE: Lock Element for Dragging */
+        body.move-mode-global .selectable-hover {
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important; /* No iOS menu */
+            touch-action: none !important; /* No scrolling */
+            cursor: move;
+            outline: 2px dashed #10b981; /* Visual cue: Green dashed line */
+        }
+
+        /* 3. Visual Feedback for Active Drag */
+        .dragging-active {
+            outline: 4px solid #10b981 !important;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+            transform: scale(1.05); /* Pop effect */
+            z-index: 9999;
+            transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Selected State (Blue Box) */
+        .selected-element {
+            outline: 2px solid var(--accent-primary);
+            z-index: 100;
         }
 
         body.theme-aurora { --bg-deep: #0f0c29; --bg-panel: rgba(255, 255, 255, 0.1); --accent-primary: #ec4899; --accent-secondary: #6366f1; --border-subtle: rgba(255, 255, 255, 0.2); --glass-blur: blur(15px); }
@@ -63,7 +96,7 @@
             background-image: linear-gradient(var(--border-subtle) 1px, transparent 1px), linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px); 
             background-size: 50px 50px; 
             height: 100vh; 
-            overflow: hidden; /* Changed to hidden for custom pan/zoom */
+            overflow: hidden;
             display: flex; justify-content: center; align-items: center;
             touch-action: none; /* Handle touches manually */
         }
@@ -92,13 +125,14 @@
         #hud-toolbar.visible { transform: translateX(-50%) translateY(0); }
         .hud-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(125,125,125,0.1); border: 1px solid var(--border-subtle); color: var(--hud-text); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; position: relative; }
         .hud-btn:hover { background: var(--accent-primary); transform: scale(1.1); color: white; border-color: transparent; }
+        .hud-btn.active { background: #10b981; color: white; border-color: #059669; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); transform: scale(1.1); }
         .hud-btn.danger:hover { color: white; background: #ef4444; }
         .hidden-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
         .btn-secondary { background: rgba(125, 125, 125, 0.1); color: var(--text-muted); transition: all 0.2s; }
         .btn-secondary:hover { background: rgba(125, 125, 125, 0.2); color: var(--text-main); }
 
         .editing-active #render-target { outline: 4px solid var(--accent-primary); outline-offset: 2px; }
-        .selectable-hover { outline: 1px dashed var(--accent-primary); cursor: move; touch-action: none; }
+        .selectable-hover { outline: 1px dashed var(--accent-primary); cursor: move; }
         .selected-element { outline: 2px solid var(--accent-primary) !important; position: relative; z-index: 100; }
 
         #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: var(--accent-primary); color: white; padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.2); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; opacity: 0; }
@@ -442,10 +476,18 @@
             <h3 class="text-xl font-bold text-white mb-6">Mobile Controls</h3>
 
             <div class="gesture-row">
+                <div class="gesture-icon-box"><i class="fas fa-arrows-up-down-left-right"></i></div>
+                <div class="gesture-text">
+                    <strong>Move Tool (New)</strong>
+                    <span>Tap icon to enable instant drag</span>
+                </div>
+            </div>
+
+            <div class="gesture-row">
                 <div class="gesture-icon-box"><i class="fas fa-hand-pointer"></i></div>
                 <div class="gesture-text">
-                    <strong>Hold & Drag</strong>
-                    <span>Hold element for 0.5s to move</span>
+                    <strong>Tap to Select</strong>
+                    <span>Tap any element to select it</span>
                 </div>
             </div>
 
@@ -465,14 +507,6 @@
                 </div>
             </div>
 
-            <div class="gesture-row">
-                <div class="gesture-icon-box"><i class="fas fa-hand-paper"></i></div>
-                <div class="gesture-text">
-                    <strong>Pan Canvas</strong>
-                    <span>Drag background with 1 finger</span>
-                </div>
-            </div>
-
             <button onclick="dismissGuide()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition shadow-lg shadow-blue-500/30">I Understand</button>
         </div>
     </div>
@@ -481,6 +515,11 @@
     <div id="hud-toolbar">
         <button class="hud-btn" onclick="historyUndo()" title="Undo"><i class="fas fa-undo"></i></button>
         <button class="hud-btn" onclick="historyRedo()" title="Redo"><i class="fas fa-redo"></i></button>
+        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
+        
+        <!-- NEW MOVE TOOL -->
+        <button class="hud-btn" id="btn-move-tool" onclick="toggleMoveTool()" title="Move Tool (Instant Drag)"><i class="fas fa-arrows-up-down-left-right"></i></button>
+        
         <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
         <button class="hud-btn" onclick="triggerDuplicate()" title="Duplicate (Ctrl+D)"><i class="fas fa-clone"></i></button>
         <label class="hud-btn" title="Add Image"><i class="fas fa-image"></i><input type="file" accept="image/*" class="hidden-input" onchange="addImage(this)"></label>
@@ -697,6 +736,7 @@
         const btnEdit = document.getElementById('btn-edit');
 
         let isEditMode = false;
+        let isMoveToolActive = false; // NEW STATE
         let selectedElement = null;
         let clipboardHTML = null; 
         let isDemoActive = true;
@@ -905,7 +945,7 @@
                                 target.classList.add('rotten');
                                 target.innerHTML = '<i class="fas fa-biohazard"></i>'; 
                             }
-                        }, 1200); 
+                        }, 1000); 
                     }
 
                     const x = Math.random() * (window.innerWidth - 90);
@@ -930,7 +970,7 @@
                         }
                         else {
                             const created = parseInt(target.getAttribute('data-created'));
-                            if (now - created > 1500) { // Rotten
+                            if (now - created > 1000) { // Rotten
                                 gameScore -= 50;
                                 body.classList.add('shake-screen');
                                 setTimeout(() => body.classList.remove('shake-screen'), 300);
@@ -950,7 +990,7 @@
                     };
 
                     gameArea.appendChild(target);
-                    setTimeout(() => { if(target.parentNode) target.remove(); }, 1400); // Easier - longer persist
+                    setTimeout(() => { if(target.parentNode) target.remove(); }, 2500); // Easier - longer persist
                 }, 300);
 
                 // Timer & Panic
@@ -1268,8 +1308,13 @@
                 hudToolbar.classList.remove('visible'); 
                 deselectElement(); 
                 disableEditListeners(); 
+                
+                // Ensure guide is dismissed
                 document.getElementById('mobile-gesture-guide').classList.remove('visible');
                 setTimeout(() => document.getElementById('mobile-gesture-guide').style.display = 'none', 500);
+
+                // Reset Move Tool
+                if(isMoveToolActive) toggleMoveTool();
             }
         }
 
@@ -1304,12 +1349,29 @@
         }
         function triggerDuplicate() { if(selectedElement) { clipboardHTML = selectedElement.outerHTML; triggerPaste(); } }
 
+        // --- NEW MOVE TOOL LOGIC ---
+        function toggleMoveTool() {
+            isMoveToolActive = !isMoveToolActive;
+            const btn = document.getElementById('btn-move-tool');
+            
+            if(isMoveToolActive) {
+                btn.classList.add('bg-blue-600', 'text-white', 'shadow-[0_0_10px_rgba(37,99,235,0.6)]');
+                btn.classList.remove('text-slate-400');
+                showToast("Move Mode: ACTIVE");
+                document.body.classList.add('move-mode-global');
+            } else {
+                btn.classList.remove('bg-blue-600', 'text-white', 'shadow-[0_0_10px_rgba(37,99,235,0.6)]');
+                btn.classList.add('text-slate-400');
+                showToast("Move Mode: Disabled");
+                document.body.classList.remove('move-mode-global');
+            }
+        }
+
         function enableEditListeners() { 
             renderTarget.querySelectorAll('*').forEach(el => { 
                 el.classList.add('selectable-hover'); 
                 el.setAttribute('draggable', false); 
             }); 
-            // Removed mousedown/touchstart here, handled by global handler
         }
         function disableEditListeners() { 
             renderTarget.querySelectorAll('*').forEach(el => { 
@@ -1343,13 +1405,11 @@
         // 1. STAGE TOUCH HANDLER (Pan & Zoom)
         stageContainer.addEventListener('touchstart', (e) => {
             // If touching an element (and not background), ignore here initially
-            // We let the element handler decide if it's a hold or a tap
             const isElement = e.target !== renderTarget && e.target !== stageContainer && e.target !== renderWrapper;
 
             // 2 Fingers = Pinch/Zoom (Always allowed)
             if (e.touches.length === 2) {
                 e.preventDefault();
-                // Cancel any pending element drag
                 clearTimeout(holdTimer);
                 isDragging = false;
                 if(dragTarget) dragTarget.classList.remove('dragging-active');
@@ -1366,7 +1426,8 @@
             }
 
             // 1 Finger on Background = Pan
-            if (e.touches.length === 1 && !isElement) {
+            // NOTE: If Move Tool is active, touching an element prevents Pan
+            if (e.touches.length === 1 && (!isElement || !isMoveToolActive)) {
                 gestureState.panning = true;
                 renderWrapper.style.transition = 'none';
                 gestureState.startX = e.touches[0].clientX - gestureState.pointX;
@@ -1425,47 +1486,46 @@
             const startX = touch.clientX;
             const startY = touch.clientY;
 
-            // Start HOLD Timer
-            holdTimer = setTimeout(() => {
-                // HOLD COMPLETE -> START DRAG
+            // --- NEW LOGIC: MOVE TOOL ---
+            if (isMoveToolActive) {
+                // Instant Grab - No Timer
+                e.preventDefault(); // Stop text selection/scroll
                 isDragging = true;
-                gestureState.panning = false; // Disable background pan
-
-                // Visual Feedback
-                dragTarget.classList.add('dragging-active');
-                if (navigator.vibrate) navigator.vibrate(50); // Haptic
-
+                gestureState.panning = false; // Ensure background pan doesn't fight
+                
                 selectElement(dragTarget, false);
-
-                // Prep Drag Math
+                dragTarget.classList.add('dragging-active');
+                
                 dragStartCoords = { x: startX, y: startY };
                 const style = window.getComputedStyle(dragTarget);
                 elementStartMatrix = new WebKitCSSMatrix(style.transform);
+                return; // Exit, skip timer logic
+            }
 
-            }, 500); // 500ms Hold Time
+            // --- OLD LOGIC: HOLD TIMER (Backup for when Move Tool is off) ---
+            holdTimer = setTimeout(() => {
+                isDragging = true;
+                gestureState.panning = false;
+                dragTarget.classList.add('dragging-active');
+                if (navigator.vibrate) navigator.vibrate(50); 
+                selectElement(dragTarget, false);
+                dragStartCoords = { x: startX, y: startY };
+                const style = window.getComputedStyle(dragTarget);
+                elementStartMatrix = new WebKitCSSMatrix(style.transform);
+            }, 250); // Reduced to 250ms for snappiness
 
-            // Monitor for movement BEFORE hold completes (Cancel if moving)
             const cancelHold = (moveEvent) => {
                 const mx = moveEvent.touches[0].clientX;
                 const my = moveEvent.touches[0].clientY;
                 const dist = Math.hypot(mx - startX, my - startY);
-
-                if (dist > 10) { // Moved > 10px
-                    clearTimeout(holdTimer);
-                    // If we moved without holding, it's likely a scroll or accidental swipe.
-                    // We do NOT enable dragging.
-                }
+                if (dist > 10) clearTimeout(holdTimer);
             };
 
             const endTouch = () => {
                 clearTimeout(holdTimer);
                 if (!isDragging) {
-                    // It was a tap (short touch)
-                    // Handle Double Tap logic here if needed, or just select
-                    // For now, simple select:
                     selectElement(target, false);
                 }
-                // Cleanup
                 isDragging = false;
                 if(dragTarget) dragTarget.classList.remove('dragging-active');
                 dragTarget = null;
