@@ -67,6 +67,12 @@
             z-index: 100;
         }
 
+        /* Edit Mode State (Orange Box) */
+        .editing-text-active {
+            outline: 2px dashed #f59e0b !important;
+            background: rgba(0,0,0,0.1);
+        }
+
         body.theme-aurora { --bg-deep: #0f0c29; --bg-panel: rgba(255, 255, 255, 0.1); --accent-primary: #ec4899; --accent-secondary: #6366f1; --border-subtle: rgba(255, 255, 255, 0.2); --glass-blur: blur(15px); }
         body.theme-pearl { --bg-deep: #fdfbf7; --bg-panel: rgba(255, 255, 255, 0.65); --accent-primary: #8b5cf6; --accent-secondary: #d4af37; --text-main: #1e293b; --text-muted: #64748b; --border-subtle: rgba(0, 0, 0, 0.06); --glass-blur: blur(25px); --hud-bg: rgba(255, 255, 255, 0.85); --hud-text: #334155; }
 
@@ -736,7 +742,7 @@
         const btnEdit = document.getElementById('btn-edit');
 
         let isEditMode = false;
-        let isMoveToolActive = false; // NEW STATE
+        let isMoveToolActive = false; 
         let selectedElement = null;
         let clipboardHTML = null; 
         let isDemoActive = true;
@@ -762,7 +768,7 @@
 
         // --- GLOBAL DEMO APP CONTROLLER ---
         window.demoApp = {
-            retryCount: 0, // Track number of retries
+            retryCount: 0,
 
             initSys: function() {
                 const log = renderTarget.querySelector('#event-log');
@@ -786,7 +792,6 @@
                     requestFS.call(document.documentElement).catch(err => { console.log("Fullscreen denied", err); });
                 }
 
-                // 1. GLITCH & INVERT
                 mainBody.style.filter = "invert(1) hue-rotate(180deg)";
                 mainBody.style.transform = "scale(1.02)";
 
@@ -794,7 +799,7 @@
                     mainBody.style.filter = "none"; mainBody.style.transform = "none";
                     bootContainer.style.display = 'flex';
                     bsodScreen.style.display = 'flex';
-                    bootContainer.style.zIndex = "999999999"; // Ensure top level
+                    bootContainer.style.zIndex = "999999999";
 
                     let percent = 0;
                     const progress = document.getElementById('bsod-progress');
@@ -817,18 +822,13 @@
                                 bootContainer.style.display = 'none'; biosScreen.style.display = 'none';
 
                                 if (hardReset) {
-                                    // HARD RESET LOGIC
-                                    this.quitGame(); // Close game UI
-                                    input.value = DEMO_HTML; // Reset Code
-                                    renderContent(); // Re-render
-                                    this.retryCount = 0; // Reset Flag
-
-                                    // Reset Theme
+                                    this.quitGame();
+                                    input.value = DEMO_HTML;
+                                    renderContent();
+                                    this.retryCount = 0;
                                     themeIndex = 0;
                                     document.body.className = themes[0];
                                     updateThemeUI();
-
-                                    // Reset View Mode
                                     setMode('view');
                                 }
 
@@ -846,7 +846,6 @@
             confirmReboot: function() {
                 this.triggerReboot(false);
             },
-            // GAME LOGIC
             launchGame: function(isRetry = false) {
                 if (isRetry) {
                     this.retryCount++;
@@ -880,7 +879,6 @@
                 timerEl.className = "text-6xl font-black text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]";
                 document.getElementById('breach-bar').style.width = '0%';
 
-                // SHOW BRIEFING
                 briefingScreen.style.display = 'flex';
                 let bCount = 3;
                 briefingCountdown.innerText = bCount;
@@ -896,8 +894,6 @@
                 }, 1000);
             },
             handleRetry: function() {
-                // If we have already retried once (meaning we just finished Game 2), 
-                // the next retry (Game 3) triggers revenge.
                 if (this.retryCount >= 1) {
                     this.triggerWasuponRevenge();
                 } else {
@@ -905,7 +901,6 @@
                 }
             },
             handleFate: function() {
-                // If we just finished Game 2, Fate also triggers revenge
                 if (this.retryCount >= 1) {
                     this.triggerWasuponRevenge();
                 } else {
@@ -918,34 +913,28 @@
                 const timerEl = document.getElementById('game-timer');
                 const body = document.body;
 
-                // Spawner
                 gameInterval = setInterval(() => {
                     if(gameTime <= 0) return;
 
                     const rand = Math.random();
-
                     const target = document.createElement('div');
 
                     if(rand > 0.9) {
-                        // BONUS (10% Chance)
                         target.className = 'bonus-target';
                         target.innerHTML = '<i class="fas fa-gem"></i>';
-
-                    } else if (rand > 0.5) { // 40% Decoy
+                    } else if (rand > 0.5) {
                         target.className = 'decoy-target';
                         target.innerHTML = '<i class="fas fa-bolt"></i>';
-
-                    } else { // 50% Normal Target
+                    } else {
                         target.className = 'game-target';
                         target.innerHTML = '<i class="fas fa-bug"></i>'; 
                         target.setAttribute('data-created', Date.now());
-                        // Rotten Logic (Easier - 1.5s)
                         setTimeout(() => {
                             if(target.parentNode && !target.classList.contains('hit')) {
                                 target.classList.add('rotten');
                                 target.innerHTML = '<i class="fas fa-biohazard"></i>'; 
                             }
-                        }, 1000); 
+                        }, 1200); 
                     }
 
                     const x = Math.random() * (window.innerWidth - 90);
@@ -970,11 +959,10 @@
                         }
                         else {
                             const created = parseInt(target.getAttribute('data-created'));
-                            if (now - created > 1000) { // Rotten
+                            if (now - created > 1200) { // FIXED: Penalty Logic (Now matches Rotten time)
                                 gameScore -= 50;
                                 body.classList.add('shake-screen');
                                 setTimeout(() => body.classList.remove('shake-screen'), 300);
-                                // Penalty: More decoys
                                 decoyChance = Math.min(0.8, decoyChance + 0.1);
                             } else {
                                 gameScore += 100;
@@ -990,10 +978,9 @@
                     };
 
                     gameArea.appendChild(target);
-                    setTimeout(() => { if(target.parentNode) target.remove(); }, 2500); // Easier - longer persist
+                    setTimeout(() => { if(target.parentNode) target.remove(); }, 2500); // FIXED: Extended lifespan
                 }, 300);
 
-                // Timer & Panic
                 gameTimerInterval = setInterval(() => {
                     gameTime--;
                     timerEl.innerText = gameTime;
@@ -1004,7 +991,7 @@
                          body.classList.add('red-shift');
                          setTimeout(() => body.classList.remove('red-shift'), 100);
                     }
-                    // Fake System Fail Flash
+                    
                     if(gameTime < 5 && Math.random() > 0.7) {
                         const flash = document.createElement('div');
                         flash.className = 'absolute inset-0 flex items-center justify-center pointer-events-none z-50 text-6xl font-black text-red-500 opacity-80 animate-pulse';
@@ -1035,7 +1022,6 @@
                     screen.classList.remove('hidden');
                     generateLeaderboard(gameScore);
 
-                    // Update Buttons to use new handlers
                     btnRetry.onclick = () => this.handleRetry();
                     btnFate.onclick = () => this.handleFate();
 
@@ -1058,7 +1044,6 @@
                     }
                 };
 
-                // UPDATED LOGIC: Trigger Taunt after Game 1 (retryCount === 0)
                 if (this.retryCount === 0) {
                     this.triggerTaunt(showLeaderboard);
                 } else {
@@ -1066,7 +1051,6 @@
                 }
             },
 
-            // NEW TAUNT FUNCTION
             triggerTaunt: function(callback) {
                 const overlay = document.createElement('div');
                 overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s;";
@@ -1309,11 +1293,9 @@
                 deselectElement(); 
                 disableEditListeners(); 
                 
-                // Ensure guide is dismissed
                 document.getElementById('mobile-gesture-guide').classList.remove('visible');
                 setTimeout(() => document.getElementById('mobile-gesture-guide').style.display = 'none', 500);
 
-                // Reset Move Tool
                 if(isMoveToolActive) toggleMoveTool();
             }
         }
@@ -1471,91 +1453,74 @@
             }
         });
 
-        // 2. ELEMENT INTERACTION (Hold to Drag)
+        // --- HELPER FUNCTIONS FOR GLOBAL DRAG ---
+        function handleGlobalTouchMove(e) {
+            if (isDragging && dragTarget) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const scale = gestureState.scale || 1;
+                const deltaX = (touch.clientX - dragStartCoords.x) / scale;
+                const deltaY = (touch.clientY - dragStartCoords.y) / scale;
+                dragTarget.style.transform = `translate(${elementStartMatrix.m41 + deltaX}px, ${elementStartMatrix.m42 + deltaY}px) scale(${elementStartMatrix.m11})`;
+            }
+        }
+
+        function handleGlobalTouchEnd(e) {
+            isDragging = false;
+            if (dragTarget) {
+                dragTarget.classList.remove('dragging-active');
+                saveState(); 
+            }
+            dragTarget = null;
+            document.removeEventListener('touchmove', handleGlobalTouchMove);
+            document.removeEventListener('touchend', handleGlobalTouchEnd);
+        }
+
+        // 2. ELEMENT INTERACTION (Hold or Move Tool)
         function handleElementTouchStart(e) {
             if (!isEditMode) return;
             if (e.touches.length > 1) return; // Ignore multi-touch
 
             const target = e.target;
-            if (target === renderTarget || target.closest('.stage-container')) return; // Ignore background
+            if (target === renderTarget || target.closest('.stage-container')) return; 
 
-            e.stopPropagation(); // Don't trigger background pan yet
+            e.stopPropagation();
+
+            // 1. HANDLE DOUBLE TAP (Text Edit)
+            const now = Date.now();
+            if (now - lastTouchTime < 300 && !isMoveToolActive) {
+                e.preventDefault(); // Prevent zoom
+                selectElement(target, true); // Enter edit mode
+                return;
+            }
+            lastTouchTime = now;
 
             dragTarget = target;
             const touch = e.touches[0];
             const startX = touch.clientX;
             const startY = touch.clientY;
 
-            // --- NEW LOGIC: MOVE TOOL ---
+            // 2. MOVE TOOL LOGIC
             if (isMoveToolActive) {
-                // Instant Grab - No Timer
-                e.preventDefault(); // Stop text selection/scroll
-                isDragging = true;
-                gestureState.panning = false; // Ensure background pan doesn't fight
-                
-                selectElement(dragTarget, false);
-                dragTarget.classList.add('dragging-active');
-                
-                dragStartCoords = { x: startX, y: startY };
-                const style = window.getComputedStyle(dragTarget);
-                elementStartMatrix = new WebKitCSSMatrix(style.transform);
-                return; // Exit, skip timer logic
-            }
-
-            // --- OLD LOGIC: HOLD TIMER (Backup for when Move Tool is off) ---
-            holdTimer = setTimeout(() => {
+                e.preventDefault();
                 isDragging = true;
                 gestureState.panning = false;
-                dragTarget.classList.add('dragging-active');
-                if (navigator.vibrate) navigator.vibrate(50); 
+                
                 selectElement(dragTarget, false);
+                dragTarget.classList.add('dragging-active');
+                
                 dragStartCoords = { x: startX, y: startY };
                 const style = window.getComputedStyle(dragTarget);
                 elementStartMatrix = new WebKitCSSMatrix(style.transform);
-            }, 250); // Reduced to 250ms for snappiness
 
-            const cancelHold = (moveEvent) => {
-                const mx = moveEvent.touches[0].clientX;
-                const my = moveEvent.touches[0].clientY;
-                const dist = Math.hypot(mx - startX, my - startY);
-                if (dist > 10) clearTimeout(holdTimer);
-            };
+                // ATTACH LISTENERS TO DOCUMENT
+                document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false });
+                document.addEventListener('touchend', handleGlobalTouchEnd);
+                return;
+            }
 
-            const endTouch = () => {
-                clearTimeout(holdTimer);
-                if (!isDragging) {
-                    selectElement(target, false);
-                }
-                isDragging = false;
-                if(dragTarget) dragTarget.classList.remove('dragging-active');
-                dragTarget = null;
-                document.removeEventListener('touchmove', cancelHold);
-                document.removeEventListener('touchend', endTouch);
-            };
-
-            document.addEventListener('touchmove', (ev) => {
-                if (isDragging) {
-                    ev.preventDefault(); // Stop scroll
-                    handleElementDrag(ev);
-                } else {
-                    cancelHold(ev);
-                }
-            }, { passive: false });
-
-            document.addEventListener('touchend', endTouch);
-        }
-
-        function handleElementDrag(e) {
-            if (!isDragging || !dragTarget) return;
-
-            const touch = e.touches[0];
-            const scale = gestureState.scale || 1;
-
-            // Calculate Delta adjusted by Zoom Scale
-            const deltaX = (touch.clientX - dragStartCoords.x) / scale;
-            const deltaY = (touch.clientY - dragStartCoords.y) / scale;
-
-            dragTarget.style.transform = `translate(${elementStartMatrix.m41 + deltaX}px, ${elementStartMatrix.m42 + deltaY}px) scale(${elementStartMatrix.m11})`;
+            // 3. DEFAULT SELECTION
+            selectElement(target, false);
         }
 
         // Attach to Render Target (Delegation)
@@ -1607,6 +1572,7 @@
         function selectElement(el, editMode = false) {
             if (selectedElement && selectedElement !== el) { 
                 selectedElement.classList.remove('selected-element'); 
+                selectedElement.classList.remove('editing-text-active');
                 selectedElement.contentEditable = "false"; 
             }
             selectedElement = el; 
@@ -1618,13 +1584,15 @@
 
             if (editMode && el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) { 
                 el.contentEditable = "true"; 
+                el.classList.add('editing-text-active');
                 el.focus(); 
             } else {
                 el.contentEditable = "false";
+                el.classList.remove('editing-text-active');
             }
         }
 
-        function deselectElement() { if (selectedElement) { selectedElement.classList.remove('selected-element'); selectedElement.contentEditable = "false"; selectedElement = null; } }
+        function deselectElement() { if (selectedElement) { selectedElement.classList.remove('selected-element', 'editing-text-active'); selectedElement.contentEditable = "false"; selectedElement = null; } }
         function deleteSelected() { if(selectedElement) { selectedElement.remove(); selectedElement=null; saveState(); } }
         function updateElementSize(val) { if (!selectedElement) return; const style = window.getComputedStyle(selectedElement); const matrix = new WebKitCSSMatrix(style.transform); selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${val})`; }
         editSizeSlider.addEventListener('change', saveState);
