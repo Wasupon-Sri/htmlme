@@ -742,7 +742,6 @@
         const btnEdit = document.getElementById('btn-edit');
 
         let isEditMode = false;
-        let isMoveToolActive = false; 
         let selectedElement = null;
         let clipboardHTML = null; 
         let isDemoActive = true;
@@ -768,7 +767,7 @@
 
         // --- GLOBAL DEMO APP CONTROLLER ---
         window.demoApp = {
-            retryCount: 0,
+            retryCount: 0, // Track number of retries
 
             initSys: function() {
                 const log = renderTarget.querySelector('#event-log');
@@ -792,6 +791,7 @@
                     requestFS.call(document.documentElement).catch(err => { console.log("Fullscreen denied", err); });
                 }
 
+                // 1. GLITCH & INVERT
                 mainBody.style.filter = "invert(1) hue-rotate(180deg)";
                 mainBody.style.transform = "scale(1.02)";
 
@@ -799,7 +799,7 @@
                     mainBody.style.filter = "none"; mainBody.style.transform = "none";
                     bootContainer.style.display = 'flex';
                     bsodScreen.style.display = 'flex';
-                    bootContainer.style.zIndex = "999999999";
+                    bootContainer.style.zIndex = "999999999"; // Ensure top level
 
                     let percent = 0;
                     const progress = document.getElementById('bsod-progress');
@@ -822,13 +822,18 @@
                                 bootContainer.style.display = 'none'; biosScreen.style.display = 'none';
 
                                 if (hardReset) {
-                                    this.quitGame();
-                                    input.value = DEMO_HTML;
-                                    renderContent();
-                                    this.retryCount = 0;
+                                    // HARD RESET LOGIC
+                                    this.quitGame(); // Close game UI
+                                    input.value = DEMO_HTML; // Reset Code
+                                    renderContent(); // Re-render
+                                    this.retryCount = 0; // Reset Flag
+
+                                    // Reset Theme
                                     themeIndex = 0;
                                     document.body.className = themes[0];
                                     updateThemeUI();
+
+                                    // Reset View Mode
                                     setMode('view');
                                 }
 
@@ -846,6 +851,7 @@
             confirmReboot: function() {
                 this.triggerReboot(false);
             },
+            // GAME LOGIC
             launchGame: function(isRetry = false) {
                 if (isRetry) {
                     this.retryCount++;
@@ -879,6 +885,7 @@
                 timerEl.className = "text-6xl font-black text-red-500 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)]";
                 document.getElementById('breach-bar').style.width = '0%';
 
+                // SHOW BRIEFING
                 briefingScreen.style.display = 'flex';
                 let bCount = 3;
                 briefingCountdown.innerText = bCount;
@@ -894,6 +901,8 @@
                 }, 1000);
             },
             handleRetry: function() {
+                // If we have already retried once (meaning we just finished Game 2), 
+                // the next retry (Game 3) triggers revenge.
                 if (this.retryCount >= 1) {
                     this.triggerWasuponRevenge();
                 } else {
@@ -901,6 +910,7 @@
                 }
             },
             handleFate: function() {
+                // If we just finished Game 2, Fate also triggers revenge
                 if (this.retryCount >= 1) {
                     this.triggerWasuponRevenge();
                 } else {
@@ -913,22 +923,28 @@
                 const timerEl = document.getElementById('game-timer');
                 const body = document.body;
 
+                // Spawner
                 gameInterval = setInterval(() => {
                     if(gameTime <= 0) return;
 
                     const rand = Math.random();
+
                     const target = document.createElement('div');
 
                     if(rand > 0.9) {
+                        // BONUS (10% Chance)
                         target.className = 'bonus-target';
                         target.innerHTML = '<i class="fas fa-gem"></i>';
-                    } else if (rand > 0.5) {
+
+                    } else if (rand > 0.5) { // 40% Decoy
                         target.className = 'decoy-target';
                         target.innerHTML = '<i class="fas fa-bolt"></i>';
-                    } else {
+
+                    } else { // 50% Normal Target
                         target.className = 'game-target';
                         target.innerHTML = '<i class="fas fa-bug"></i>'; 
                         target.setAttribute('data-created', Date.now());
+                        // Rotten Logic (Easier - 1.5s)
                         setTimeout(() => {
                             if(target.parentNode && !target.classList.contains('hit')) {
                                 target.classList.add('rotten');
@@ -959,10 +975,11 @@
                         }
                         else {
                             const created = parseInt(target.getAttribute('data-created'));
-                            if (now - created > 1200) { // FIXED: Penalty Logic (Now matches Rotten time)
+                            if (now - created > 1500) { // Rotten
                                 gameScore -= 50;
                                 body.classList.add('shake-screen');
                                 setTimeout(() => body.classList.remove('shake-screen'), 300);
+                                // Penalty: More decoys
                                 decoyChance = Math.min(0.8, decoyChance + 0.1);
                             } else {
                                 gameScore += 100;
@@ -978,9 +995,10 @@
                     };
 
                     gameArea.appendChild(target);
-                    setTimeout(() => { if(target.parentNode) target.remove(); }, 2500); // FIXED: Extended lifespan
-                }, 300);
+                    setTimeout(() => { if(target.parentNode) target.remove(); }, 2500); // Easier - longer persist
+                }, 300); // Fixed spawn rate back to normal
 
+                // Timer & Panic
                 gameTimerInterval = setInterval(() => {
                     gameTime--;
                     timerEl.innerText = gameTime;
@@ -991,7 +1009,7 @@
                          body.classList.add('red-shift');
                          setTimeout(() => body.classList.remove('red-shift'), 100);
                     }
-                    
+                    // Fake System Fail Flash
                     if(gameTime < 5 && Math.random() > 0.7) {
                         const flash = document.createElement('div');
                         flash.className = 'absolute inset-0 flex items-center justify-center pointer-events-none z-50 text-6xl font-black text-red-500 opacity-80 animate-pulse';
@@ -1022,6 +1040,7 @@
                     screen.classList.remove('hidden');
                     generateLeaderboard(gameScore);
 
+                    // Update Buttons to use new handlers
                     btnRetry.onclick = () => this.handleRetry();
                     btnFate.onclick = () => this.handleFate();
 
@@ -1044,6 +1063,7 @@
                     }
                 };
 
+                // UPDATED LOGIC: Trigger Taunt after Game 1 (retryCount === 0)
                 if (this.retryCount === 0) {
                     this.triggerTaunt(showLeaderboard);
                 } else {
@@ -1051,6 +1071,7 @@
                 }
             },
 
+            // NEW TAUNT FUNCTION
             triggerTaunt: function(callback) {
                 const overlay = document.createElement('div');
                 overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:99999999;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:fadeIn 0.3s;";
@@ -1482,7 +1503,9 @@
             if (e.touches.length > 1) return; // Ignore multi-touch
 
             const target = e.target;
-            if (target === renderTarget || target.closest('.stage-container')) return; 
+            // Fixed: Now allows dragging if target is inside renderTarget but NOT renderTarget itself
+            // Also ignore stage container wrappers to prevent "background drag" logic here
+            if (target === renderTarget || target === stageContainer || target === renderWrapper) return;
 
             e.stopPropagation();
 
