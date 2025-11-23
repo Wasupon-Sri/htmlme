@@ -498,28 +498,16 @@
         <button class="hud-btn" onclick="historyUndo()" title="Undo"><i class="fas fa-undo"></i></button>
         <button class="hud-btn" onclick="historyRedo()" title="Redo"><i class="fas fa-redo"></i></button>
         <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
-        <button class="hud-btn" onclick="triggerDuplicate()" title="Duplicate (Ctrl+D)"><i class="fas fa-clone"></i></button>
-        <label class="hud-btn" title="Add Image"><i class="fas fa-image"></i><input type="file" accept="image/*" class="hidden-input" onchange="addImage(this)"></label>
-        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
-        
-        <!-- Nudge Controls -->
-        <div class="flex flex-col gap-0.5 mx-1">
-            <div class="flex gap-0.5 justify-center">
-                <button class="hud-btn mini" onclick="moveSelected(0, -10)" title="Move Up"><i class="fas fa-chevron-up text-[8px]"></i></button>
-            </div>
-            <div class="flex gap-0.5">
-                <button class="hud-btn mini" onclick="moveSelected(-10, 0)" title="Move Left"><i class="fas fa-chevron-left text-[8px]"></i></button>
-                <button class="hud-btn mini" onclick="moveSelected(0, 10)" title="Move Down"><i class="fas fa-chevron-down text-[8px]"></i></button>
-                <button class="hud-btn mini" onclick="moveSelected(10, 0)" title="Move Right"><i class="fas fa-chevron-right text-[8px]"></i></button>
-            </div>
-        </div>
-
-        <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
-        <label class="hud-btn" title="Text Color"><i class="fas fa-font"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/20"></div><input type="color" class="hidden-input" oninput="updateTextColor(this.value)"></label>
-        <label class="hud-btn" title="Fill Color"><i class="fas fa-fill-drip"></i><div class="absolute bottom-1 right-1 w-2 h-2 bg-current rounded-full border border-black/20"></div><input type="color" class="hidden-input" oninput="updateFillColor(this.value)"></label>
         <button class="hud-btn" onclick="cycleFont()" title="Change Font"><i class="fas fa-paragraph"></i></button>
         <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
-        <div class="w-[100px] flex items-center px-1"><input type="range" id="edit-size-slider" min="0.2" max="3.0" step="0.1" value="1.0" oninput="updateElementSize(this.value)"></div>
+        
+        <!-- REPLACED SLIDER WITH BUTTONS -->
+        <div class="flex items-center gap-1 mx-1">
+            <button class="hud-btn mini" onclick="adjustSize(-0.1)" title="Decrease Size"><i class="fas fa-minus"></i></button>
+            <span id="size-display" class="text-[10px] font-mono w-8 text-center select-none" style="color:var(--text-main)">1.0x</span>
+            <button class="hud-btn mini" onclick="adjustSize(0.1)" title="Increase Size"><i class="fas fa-plus"></i></button>
+        </div>
+
         <div class="w-px h-6 bg-current opacity-20 mx-1"></div>
         <button class="hud-btn danger" onclick="deleteSelected()" title="Delete"><i class="fas fa-trash"></i></button>
     </div>
@@ -1622,8 +1610,55 @@
 
         function deselectElement() { if (selectedElement) { selectedElement.classList.remove('selected-element'); selectedElement.contentEditable = "false"; selectedElement = null; } }
         function deleteSelected() { if(selectedElement) { selectedElement.remove(); selectedElement=null; saveState(); } }
-        function updateElementSize(val) { if (!selectedElement) return; const style = window.getComputedStyle(selectedElement); const matrix = new WebKitCSSMatrix(style.transform); selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${val})`; }
-        editSizeSlider.addEventListener('change', saveState);
+        
+        // NEW RESIZING LOGIC
+        function adjustSize(delta) {
+            if (!selectedElement) return;
+            
+            const style = window.getComputedStyle(selectedElement);
+            const matrix = new WebKitCSSMatrix(style.transform);
+            
+            // Calculate new scale
+            let newScale = matrix.m11 + delta;
+            
+            // Clamp scale between 0.2 and 3.0
+            newScale = Math.max(0.2, Math.min(3.0, newScale));
+            
+            // Round to 1 decimal place to avoid floating point weirdness (0.30000004)
+            newScale = Math.round(newScale * 10) / 10;
+
+            // Apply transform (Keep position, update scale)
+            selectedElement.style.transform = `translate(${matrix.m41}px, ${matrix.m42}px) scale(${newScale})`;
+            
+            // Update Display
+            document.getElementById('size-display').innerText = newScale.toFixed(1) + 'x';
+            
+            saveState();
+        }
+
+        function selectElement(el, editMode = false) {
+            if (selectedElement && selectedElement !== el) { 
+                selectedElement.classList.remove('selected-element'); 
+                selectedElement.contentEditable = "false"; 
+            }
+            selectedElement = el; 
+            selectedElement.classList.add('selected-element');
+
+            const style = window.getComputedStyle(selectedElement); 
+            const matrix = new WebKitCSSMatrix(style.transform); 
+            
+            // UPDATE DISPLAY ON SELECTION
+            document.getElementById('size-display').innerText = matrix.m11.toFixed(1) + 'x';
+
+            if (editMode && el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) { 
+                el.contentEditable = "true"; 
+                el.focus(); 
+            } else {
+                el.contentEditable = "false";
+            }
+        }
+
+        // REMOVED OLD updateElementSize and editSizeSlider listener
         function updateTextColor(val) { if(selectedElement) { selectedElement.style.color = val; saveState(); } }
         function updateFillColor(val) { if(selectedElement) { if(selectedElement.tagName==='svg'||selectedElement.closest('svg')) selectedElement.style.fill=val; else selectedElement.style.backgroundColor=val; saveState(); } }
         function cycleFont() { if(selectedElement) { fontIndex = (fontIndex + 1) % fontFamilies.length; selectedElement.style.fontFamily = fontFamilies[fontIndex]; saveState(); } }
